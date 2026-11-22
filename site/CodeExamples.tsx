@@ -132,13 +132,48 @@ function canScrollRight(el: HTMLElement): boolean {
   return el.scrollLeft + el.clientWidth < el.scrollWidth - SCROLL_EDGE_EPS;
 }
 
+function syncCodeTouchAction(el: HTMLElement): void {
+  const left = canScrollLeft(el);
+  const right = canScrollRight(el);
+  const base =
+    left && right ? 'pan-x pan-y' : right ? 'pan-right pan-y' : left ? 'pan-left pan-y' : 'pan-y';
+  const withPinch = `${base} pinch-zoom`;
+  el.style.touchAction =
+    typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('touch-action', withPinch)
+      ? withPinch
+      : base;
+}
+
 export function CodeExamples() {
   const baseId = useId();
   const [active, setActive] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const panelRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const preRefs = useRef<Array<HTMLPreElement | null>>([]);
   const swipePreRef = useRef<HTMLElement | null>(null);
+
+  // Keep each code block's directional `touch-action` synced with its horizontal scroll edges
+  // so browsers handle native code scrolling while yielding edge/non-overflowing swipes to JS
+  useEffect(() => {
+    const syncAll = () => {
+      preRefs.current.forEach(pre => {
+        if (pre) syncCodeTouchAction(pre);
+      });
+    };
+    syncAll();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(syncAll) : null;
+    preRefs.current.forEach(pre => {
+      if (pre) ro?.observe(pre);
+    });
+    window.addEventListener('resize', syncAll);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', syncAll);
+    };
+  }, [active]);
 
   // Sync selection when browser find-in-page matches text inside a `hidden="until-found"` panel
   useEffect(() => {
@@ -164,6 +199,7 @@ export function CodeExamples() {
     [
       swipe({
         direction: 'horizontal',
+        minSwipeVelocity: 150,
         onSwipe: ev => {
           const pre = swipePreRef.current;
           if (
@@ -263,7 +299,14 @@ export function CodeExamples() {
                     {copiedId === tab.id ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <pre className="code-block" tabIndex={0}>
+                <pre
+                  ref={el => {
+                    preRefs.current[i] = el;
+                  }}
+                  className="code-block"
+                  tabIndex={0}
+                  onScroll={e => syncCodeTouchAction(e.currentTarget)}
+                >
                   <HighlightedCode code={tab.code} />
                 </pre>
               </div>

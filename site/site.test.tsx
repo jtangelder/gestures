@@ -72,22 +72,28 @@ describe('Landing Page', () => {
     Object.defineProperty(reactPre, 'scrollWidth', {value: 600, configurable: true});
     Object.defineProperty(reactPre, 'clientWidth', {value: 300, configurable: true});
 
-    // Overflowing <pre> not yet scrolled to the right: swipe left stays on React so code scrolls
+    // Overflowing <pre> not yet scrolled to the right: pan-right allows code scroll, swipe left stays on React
     reactPre.scrollLeft = 0;
+    fireEvent.scroll(reactPre);
+    expect(reactPre.style.touchAction).toContain('pan-right pan-y');
     fireEvent(reactPre, pe('pointerdown', 9, 260, 100, true, 900));
     fireEvent(document, pe('pointermove', 9, 140, 100, true, 920));
     fireEvent(document, pe('pointerup', 9, 80, 100, true, 940));
     expect(reactTab.getAttribute('aria-selected')).toBe('true');
 
-    // Mid-scroll (<pre> can scroll both ways): ignoreTarget blocks swipes in both directions
+    // Mid-scroll (<pre> can scroll both ways): pan-x pan-y and ignoreTarget block swipes
     reactPre.scrollLeft = 150;
+    fireEvent.scroll(reactPre);
+    expect(reactPre.style.touchAction).toContain('pan-x pan-y');
     fireEvent(reactPre, pe('pointerdown', 10, 80, 100, true, 960));
     fireEvent(document, pe('pointermove', 10, 200, 100, true, 980));
     fireEvent(document, pe('pointerup', 10, 260, 100, true, 1000));
     expect(reactTab.getAttribute('aria-selected')).toBe('true');
 
-    // Once scrolled all the way to the right edge, swipe left advances to Trackpad
+    // Once scrolled all the way to the right edge: pan-left allows scrolling back, swipe left advances to Trackpad
     reactPre.scrollLeft = 300;
+    fireEvent.scroll(reactPre);
+    expect(reactPre.style.touchAction).toContain('pan-left pan-y');
     fireEvent(reactPre, pe('pointerdown', 11, 260, 100, true, 1050));
     fireEvent(document, pe('pointermove', 11, 140, 100, true, 1070));
     fireEvent(document, pe('pointerup', 11, 80, 100, true, 1090));
