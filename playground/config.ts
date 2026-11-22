@@ -125,7 +125,7 @@ export const PRESETS: Record<string, {label: string; patch: Partial<Config>}> = 
     patch: {enableSingleTap: false, enableLongPress: false, enablePan: false, enableSwipe: false},
   },
   'map-2d': {
-    label: '2D Map (Simultaneous Pan+Zoom+Rotate)',
+    label: '2D Map (Pan+Zoom+Rotate)',
     patch: {enableTwoFingerTap: true, panPointers: 0, panSimultaneousScaleRotate: true},
   },
   multitouch: {
@@ -138,6 +138,59 @@ export const PRESETS: Record<string, {label: string; patch: Partial<Config>}> = 
       panPointers: 2,
       enableQuickScale: false,
       enableTrackpadScale: false,
+    },
+  },
+  'hold-drag': {
+    label: 'Hold & Drag Reorder (LongPress Move)',
+    patch: {
+      enableDoubleTap: false,
+      enableLongPressMove: true,
+      enablePan: false,
+      enableSwipe: false,
+      enableScale: false,
+      enableQuickScale: false,
+      enableTrackpadScale: false,
+      enableRotate: false,
+    },
+  },
+  'instant-tap': {
+    label: 'Instant Tap vs. Double-Tap (No Delay)',
+    patch: {
+      requireDoubleTapFailure: false,
+      enableLongPress: false,
+      enablePan: false,
+      enableSwipe: false,
+      enableScale: false,
+      enableQuickScale: false,
+      enableTrackpadScale: false,
+      enableRotate: false,
+    },
+  },
+  'zoom-only': {
+    label: 'Scroll-Safe Zoom Only (Pinch + QuickScale + Trackpad)',
+    patch: {
+      enableSingleTap: false,
+      enableDoubleTap: false,
+      enableLongPress: false,
+      enablePan: false,
+      enableSwipe: false,
+      enableRotate: false,
+    },
+  },
+  stylus: {
+    label: 'Stylus / Drawing Surface (Pen Only)',
+    patch: {
+      pointerTouch: false,
+      pointerPen: true,
+      pointerMouse: false,
+      enableSingleTap: false,
+      enableDoubleTap: false,
+      enableLongPress: false,
+      enableSwipe: false,
+      enableScale: false,
+      enableQuickScale: false,
+      enableTrackpadScale: false,
+      enableRotate: false,
     },
   },
 };

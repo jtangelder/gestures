@@ -508,14 +508,7 @@ export function App() {
               value={config.preset}
               onChange={e => {
                 const preset = e.target.value;
-                setConfig(prev => ({
-                  ...BASE_CONFIG,
-                  pointerTouch: prev.pointerTouch,
-                  pointerPen: prev.pointerPen,
-                  pointerMouse: prev.pointerMouse,
-                  ...(PRESETS[preset]?.patch ?? {}),
-                  preset,
-                }));
+                setConfig({...BASE_CONFIG, ...(PRESETS[preset]?.patch ?? {}), preset});
                 resetTransform(true);
               }}
             >
@@ -537,6 +530,14 @@ export function App() {
             >
               Reset
             </button>
+            <a
+              href="https://github.com/jtangelder/gestures"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="secondary"
+            >
+              GitHub ↗
+            </a>
           </div>
         </nav>
       </header>
