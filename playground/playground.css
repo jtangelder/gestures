@@ -51,6 +51,7 @@ header nav,
   flex-wrap: balance;
   align-items: safe center;
   gap: 0.5rem 0.85rem;
+  max-width: 100%;
 }
 
 header h1 {
@@ -58,8 +59,10 @@ header h1 {
   margin: 0;
 }
 
+header nav > *,
 .inline-row > * {
   min-inline-size: 0;
+  max-width: 100%;
 }
 
 .inline-row select,
@@ -67,6 +70,10 @@ header h1 {
 .inline-row label {
   margin: 0;
   width: auto;
+}
+
+.inline-row select {
+  text-overflow: ellipsis;
 }
 
 .inline-row button,
