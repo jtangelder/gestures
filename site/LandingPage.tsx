@@ -315,22 +315,12 @@ export function LandingPage() {
               <h2>Packages</h2>
             </header>
             <table className="env-table">
-              <thead>
-                <tr>
-                  <th scope="col">Package</th>
-                  <th scope="col">Description</th>
-                  <th scope="col" className="size-cell">
-                    Gzipped
-                  </th>
-                </tr>
-              </thead>
               <tbody>
                 <tr>
                   <th scope="row">
                     <code>@gestures/core</code>
                   </th>
                   <td>Pointer engine, tree-shakable descriptors &amp; recognizers</td>
-                  <td className="size-cell">~7.2–12.3 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -339,7 +329,6 @@ export function LandingPage() {
                   <td>
                     Tree-shakable <code>useGestures</code> React hook
                   </td>
-                  <td className="size-cell">~0.3 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -348,7 +337,6 @@ export function LandingPage() {
                   <td>
                     Standalone zone-aware <code>[gestures]</code> directive
                   </td>
-                  <td className="size-cell">~0.7 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -358,7 +346,6 @@ export function LandingPage() {
                     Standalone laptop trackpad pinch-to-zoom (<code>ctrl+wheel</code> &amp; Safari{' '}
                     <code>GestureEvent</code>)
                   </td>
-                  <td className="size-cell">~1.8 kB</td>
                 </tr>
               </tbody>
             </table>

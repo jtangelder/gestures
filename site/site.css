@@ -294,13 +294,6 @@ article > header h2 {
   overflow-wrap: anywhere;
 }
 
-.env-table .size-cell {
-  white-space: nowrap;
-  text-align: end;
-  font-family: var(--pico-font-family-monospace);
-  font-variant-numeric: tabular-nums;
-}
-
 footer.container {
   padding-block-end: 2rem;
   font-size: 0.85rem;
