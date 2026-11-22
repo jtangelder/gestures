@@ -7,8 +7,10 @@
     "noEmit": true,
     "emitDeclarationOnly": false,
     "experimentalDecorators": true,
+    "jsx": "react-jsx",
     "paths": {
       "@gestures/core": ["./packages/core/src/index.ts"],
+      "@gestures/react": ["./packages/react/src/index.ts"],
       "@gestures/trackpad": ["./packages/trackpad/src/index.ts"]
     }
   },

@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@gestures/core': resolve(rootDir, 'packages/core/src/index.ts'),
+      '@gestures/react': resolve(rootDir, 'packages/react/src/index.ts'),
       '@gestures/trackpad': resolve(rootDir, 'packages/trackpad/src/index.ts'),
     },
   },
@@ -22,6 +23,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['**/*.test.ts'],
+    include: ['**/*.test.{ts,tsx}'],
   },
 });
