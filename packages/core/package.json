@@ -9,6 +9,10 @@
     "url": "git+https://github.com/jtangelder/gestures.git",
     "directory": "packages/core"
   },
+  "homepage": "https://github.com/jtangelder/gestures#readme",
+  "bugs": {
+    "url": "https://github.com/jtangelder/gestures/issues"
+  },
   "keywords": [
     "gestures",
     "touch",
