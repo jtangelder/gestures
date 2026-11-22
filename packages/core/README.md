@@ -60,7 +60,7 @@ manager.destroy();
 
 Use `swipe({direction: 'horizontal', onSwipe})` when you only need flick detection without continuous pan tracking.
 
-> **Pointer Events only:** `@gestures/core` recognizes W3C Pointer Events (`touch`, `pen`, `mouse`) and does not synthesize `scale` events from laptop trackpad `ctrl` + `wheel` or macOS Safari `GestureEvent` zoom.
+> **Pointer Events only:** `@gestures/core` recognizes W3C Pointer Events (`touch`, `pen`, `mouse`). For laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`), use the standalone [`@gestures/trackpad`](../trackpad/README.md) package.
 
 ### Custom recognizers
 

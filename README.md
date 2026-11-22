@@ -120,12 +120,13 @@ function Card({enabled = true}: {enabled?: boolean}) {
 All packages are versioned in lockstep:
 
 - [`@gestures/core`](packages/core/README.md) — Core pointer/gesture engine, descriptors, and built-in recognizers
+- [`@gestures/trackpad`](packages/trackpad/README.md) — Standalone laptop trackpad pinch-to-zoom (`ctrl` + `wheel` & Safari `GestureEvent`)
 - [`@gestures/react`](packages/react/README.md) — React `useGestures` hook
 - [`@gestures/angular`](packages/angular/README.md) — Standalone Angular `[gestures]` directive (zone-aware)
 
 ## Browser Support & Scope
 
-`@gestures/core` is built on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action). Note that laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`) does not emit multi-touch Pointer Events and is outside the scope of `@gestures/core`.
+`@gestures/core` is built strictly on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action). For laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`), use the standalone [`@gestures/trackpad`](packages/trackpad/README.md) package.
 
 | Browser     | Minimum Version | Released | Platform Notes                                             |
 | :---------- | :-------------- | :------- | :--------------------------------------------------------- |

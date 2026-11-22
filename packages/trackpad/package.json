@@ -1,0 +1,48 @@
+{
+  "name": "@gestures/trackpad",
+  "version": "0.1.0-alpha.0",
+  "description": "Standalone laptop trackpad pinch-to-zoom recognizer for the web",
+  "license": "MIT",
+  "author": "Jorik Tangelder",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jtangelder/gestures.git",
+    "directory": "packages/trackpad"
+  },
+  "homepage": "https://github.com/jtangelder/gestures#readme",
+  "bugs": {
+    "url": "https://github.com/jtangelder/gestures/issues"
+  },
+  "keywords": [
+    "gestures",
+    "trackpad",
+    "pinch",
+    "zoom",
+    "wheel",
+    "macbook",
+    "safari"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:unit": "vitest run"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/index.es.js"
+    }
+  },
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ]
+}
