@@ -4,9 +4,9 @@
 >
 > **Try the live playground:** https://jtangelder.github.io/gestures/
 
-A modern multi-touch and pointer gesture recognition library for the web, built from scratch around:
+A modern multi-touch and pointer gesture recognition library for the web, built around:
 
-- **W3C Pointer Events** instead of legacy mouse/touch juggling
+- **W3C Pointer Events** for unified touch, pen, and mouse input
 - **Android-inspired gesture physics & arbitration** (`MotionEvent`, polynomial `VelocityTracker`, and an order-independent `GestureArena`)
 - **Tree-shakable gesture descriptors** (`tap`, `doubleTap`, `longPress`, `pan`, `swipe`, `scale`, `quickScale`, `rotate`, `gesture`) so you only ship the recognizers you import
 - **One-finger Quick Scale** (`quickScale`) for double-tap-and-drag zooming alongside two-finger pinch
@@ -60,9 +60,9 @@ const manager = new GestureManager(element, {
 });
 ```
 
-### Batteries-included `Gestures` wrapper
+### Batteries-included `Gestures` class
 
-For quick prototypes where tree-shaking isn’t needed, `Gestures` configures all built-in gestures from a single options object:
+Prefer a single options object over importing descriptors individually? The `Gestures` convenience class configures any combination of built-in gestures in one call (unlike `GestureManager` + descriptors above, importing `Gestures` bundles all built-in recognizers rather than tree-shaking unused ones):
 
 ```ts
 import {Gestures} from '@gestures/core';
@@ -125,7 +125,7 @@ All packages are versioned in lockstep:
 
 ## Browser Support & Scope
 
-`@gestures/core` is **Pointer Events only** — it relies on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action) rather than legacy `TouchEvent`/`MouseEvent` recognizers. Note that laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`) does not emit multi-touch Pointer Events and is intentionally outside the scope of `@gestures/core`.
+`@gestures/core` is built on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action). Note that laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`) does not emit multi-touch Pointer Events and is outside the scope of `@gestures/core`.
 
 | Browser     | Minimum Version | Released | Platform Notes                                             |
 | :---------- | :-------------- | :------- | :--------------------------------------------------------- |
