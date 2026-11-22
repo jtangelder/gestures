@@ -1,5 +1,3 @@
-import {swipe} from '@gestures/core';
-import {useGestures} from '@gestures/react';
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'react';
 import {parse, type ParsedToken, type ParseOptions} from 'sugar-high/core';
 import * as tsLang from 'sugar-high/lang/typescript';
@@ -176,23 +174,6 @@ export function CodeExamples() {
     btn?.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
   };
 
-  // Touch/pen horizontal swipe to move between tabs (leaves mouse drag free for text selection)
-  const panelsSwipeRef = useGestures<HTMLDivElement>(
-    [
-      swipe({
-        direction: 'horizontal',
-        onSwipe: ev => {
-          if (ev.direction === 'left' && active < EXAMPLES.length - 1) {
-            selectTab(active + 1);
-          } else if (ev.direction === 'right' && active > 0) {
-            selectTab(active - 1);
-          }
-        },
-      }),
-    ],
-    {supportedPointerTypes: ['touch', 'pen']}
-  );
-
   const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const count = EXAMPLES.length;
     if (e.key === 'ArrowRight') {
@@ -247,7 +228,7 @@ export function CodeExamples() {
         })}
       </div>
 
-      <div className="tab-panels" ref={panelsSwipeRef}>
+      <div className="tab-panels">
         {EXAMPLES.map((tab, i) => {
           const isSelected = i === active;
           return (
