@@ -1,3 +1,5 @@
+import {swipe} from '@gestures/core';
+import {useGestures} from '@gestures/react';
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'react';
 import {parse, type ParsedToken, type ParseOptions} from 'sugar-high/core';
 import * as tsLang from 'sugar-high/lang/typescript';
@@ -174,6 +176,30 @@ export function CodeExamples() {
     btn?.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
   };
 
+  // Touch/pen swipe between tabs while letting horizontally overflowing code blocks scroll natively
+  const panelsSwipeRef = useGestures<HTMLDivElement>(
+    [
+      swipe({
+        direction: 'horizontal',
+        onSwipe: ev => {
+          if (ev.direction === 'left' && active < EXAMPLES.length - 1) {
+            selectTab(active + 1);
+          } else if (ev.direction === 'right' && active > 0) {
+            selectTab(active - 1);
+          }
+        },
+      }),
+    ],
+    {
+      supportedPointerTypes: ['touch', 'pen'],
+      touchAction: false,
+      ignoreTarget: target => {
+        const pre = target instanceof Element ? target.closest('.code-block') : null;
+        return pre !== null && pre.scrollWidth > pre.clientWidth;
+      },
+    }
+  );
+
   const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const count = EXAMPLES.length;
     if (e.key === 'ArrowRight') {
@@ -228,7 +254,7 @@ export function CodeExamples() {
         })}
       </div>
 
-      <div className="tab-panels">
+      <div className="tab-panels" ref={panelsSwipeRef}>
         {EXAMPLES.map((tab, i) => {
           const isSelected = i === active;
           return (
