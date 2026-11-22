@@ -124,7 +124,7 @@ article > header h2 {
   container: stage / inline-size;
 }
 
-/* No CSS touch-action here — GestureManager / useGestures owns it */
+/* No CSS touch-action here — Gestures / useGestures owns it */
 #hitarea {
   position: relative;
   inline-size: 100%;
@@ -286,13 +286,19 @@ article > header h2 {
   margin: 0;
 }
 
-.env-table th {
+.env-table th[scope='row'] {
   white-space: nowrap;
-  inline-size: 36%;
 }
 
 .env-table td {
   overflow-wrap: anywhere;
+}
+
+.env-table .size-cell {
+  white-space: nowrap;
+  text-align: end;
+  font-family: var(--pico-font-family-monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 footer.container {

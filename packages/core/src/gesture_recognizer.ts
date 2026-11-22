@@ -243,7 +243,7 @@ export abstract class GestureRecognizer {
   /**
    * Called when the pointer stream is aborted externally (`action === 'cancel'`,
    * `event.activePointerCount === 0` — e.g. native scroll takeover, `pointercancel`, window `blur`,
-   * lost capture, or `GestureManager.cancel()`). Defaults to calling `this.cancel()`.
+   * lost capture, or `Gestures.cancel()`). Defaults to calling `this.cancel()`.
    */
   protected onPointerCancel(_event: MotionEvent): void {
     this.cancel();

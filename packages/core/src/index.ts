@@ -1,15 +1,12 @@
 /**
  * Tree-shakable ESM public entry point for `@gestures/core` (`dist/gestures.es.js`).
- * For the classic non-ESM `window.Gestures` bundle (`dist/gestures.min.js`), see `src/global.ts`.
  */
 
-export {Gestures, type GesturesConfig} from './gestures.js';
-export {GestureManager, type GestureManagerOptions, type PointerType} from './gesture_manager.js';
+export {Gestures, type GesturesOptions, type PointerType} from './gestures.js';
 export {
   GestureBinding,
   type CallbackWrapper,
   type GestureBindingOptions,
-  type GesturesOptions,
 } from './gesture_binding.js';
 export {gesture, type GestureDescriptor} from './descriptors.js';
 export {

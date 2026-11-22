@@ -492,7 +492,7 @@ export function PlaygroundApp() {
       sync();
       appendLog('dom', type, `id=${e.pointerId} remaining=${pointerMapRef.current.size}`);
       if (pointerMapRef.current.size === 0 && !persistRef.current) {
-        // Defer one microtask so `GestureManager`'s synchronous `onSwipe` can arm `swipeTimerRef` first.
+        // Defer one microtask so `Gestures`'s synchronous `onSwipe` can arm `swipeTimerRef` first.
         queueMicrotask(() => {
           if (
             pointerMapRef.current.size === 0 &&

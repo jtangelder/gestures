@@ -4,7 +4,7 @@ import {
   type CallbackWrapper,
   type GestureBindingOptions,
   type GestureDescriptor,
-  type GestureManager,
+  type Gestures,
   type GesturesOptions,
   type GestureTargetElement,
 } from '@gestures/core';
@@ -35,9 +35,9 @@ export class GesturesDirective<T extends GestureTargetElement = HTMLElement> {
   /** Optional surface/pointer configuration (`touchAction`, `ignoreTarget`, `autoWire`, ...). */
   readonly gesturesOptions = input<GesturesOptions>({});
 
-  /** Active {@link GestureManager} instance, or `null` on the server / after destroy. */
-  get instance(): GestureManager<T> | null {
-    return this.binding?.manager ?? null;
+  /** Active {@link Gestures} instance, or `null` on the server / after destroy. */
+  get instance(): Gestures<T> | null {
+    return this.binding?.instance ?? null;
   }
 
   private readonly wrapCallback: CallbackWrapper | undefined = this.ngZone

@@ -4,7 +4,7 @@ import {
   doubleTap,
   gesture,
   GestureBinding,
-  GestureManager,
+  Gestures,
   GestureRecognizer,
   longPress,
   pan,
@@ -29,7 +29,7 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     vi.useRealTimers();
   });
 
-  it('auto-wires smart defaults in GestureManager (tap/doubleTap/quickScale/pan/scale/rotate)', () => {
+  it('auto-wires smart defaults in Gestures (tap/doubleTap/quickScale/pan/scale/rotate)', () => {
     vi.useFakeTimers();
     const onTap = vi.fn();
     const onDoubleTap = vi.fn();
@@ -37,16 +37,14 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     const onRotate = vi.fn();
     const onPan = vi.fn();
 
-    const gm = new GestureManager(element, {
-      gestures: [
-        tap({onTap}),
-        doubleTap({onTap: onDoubleTap}),
-        pan({numPointers: 0, slop: 4, onPan}),
-        scale({spanSlop: 6, minSpan: 10, onScale}),
-        quickScale({sensitivity: 100, onScale}),
-        rotate({rotationSlop: 2, minSpan: 10, onRotate}),
-      ],
-    });
+    const gm = new Gestures(element, [
+      tap({onTap}),
+      doubleTap({onTap: onDoubleTap}),
+      pan({numPointers: 0, slop: 4, onPan}),
+      scale({spanSlop: 6, minSpan: 10, onScale}),
+      quickScale({sensitivity: 100, onScale}),
+      rotate({rotationSlop: 2, minSpan: 10, onRotate}),
+    ]);
 
     // 1. Single tap waits for doubleTap + quickScale timeout before firing:
     element.dispatchEvent(
@@ -128,9 +126,8 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     const onDoubleTap = vi.fn();
 
     // With `autoWire: false`, single tap fires immediately without waiting for doubleTap:
-    const gmNoAuto = new GestureManager(element, {
+    const gmNoAuto = new Gestures(element, [tap({onTap}), doubleTap({onTap: onDoubleTap})], {
       autoWire: false,
-      gestures: [tap({onTap}), doubleTap({onTap: onDoubleTap})],
     });
     element.dispatchEvent(
       pointerEvent('pointerdown', {pointerId: 1, clientX: 10, clientY: 10, timeStamp: 0})
@@ -147,10 +144,7 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     const hold = longPress({duration: 400, slop: 20, onLongPress: onHold});
     const drag = pan({slop: 4, onPanStart}).requireFailureOf(hold);
 
-    const gmExplicit = new GestureManager(element, {
-      autoWire: false,
-      gestures: [hold, drag],
-    });
+    const gmExplicit = new Gestures(element, [hold, drag], {autoWire: false});
     element.dispatchEvent(
       pointerEvent('pointerdown', {pointerId: 2, clientX: 0, clientY: 0, timeStamp: 100})
     );
@@ -170,6 +164,32 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
 
     // Empty resolveGestures returns []:
     expect(resolveGestures([])).toEqual([]);
+  });
+
+  it('supports shorthand new Gestures(element, gestures, options?) constructor', () => {
+    const onTap = vi.fn();
+    const gm = new Gestures(element, [tap({onTap})], {supportedPointerTypes: ['touch']});
+    expect(element.style.touchAction).toBe('manipulation');
+
+    // Mouse is filtered out by options passed as 3rd argument
+    element.dispatchEvent(
+      pointerEvent('pointerdown', {pointerId: 1, pointerType: 'mouse', clientX: 10, timeStamp: 0})
+    );
+    document.dispatchEvent(
+      pointerEvent('pointerup', {pointerId: 1, pointerType: 'mouse', clientX: 10, timeStamp: 20})
+    );
+    expect(onTap).not.toHaveBeenCalled();
+
+    // Touch fires onTap
+    element.dispatchEvent(
+      pointerEvent('pointerdown', {pointerId: 2, pointerType: 'touch', clientX: 10, timeStamp: 40})
+    );
+    document.dispatchEvent(
+      pointerEvent('pointerup', {pointerId: 2, pointerType: 'touch', clientX: 10, timeStamp: 60})
+    );
+    expect(onTap).toHaveBeenCalledTimes(1);
+
+    gm.destroy();
   });
 
   it('supports custom recognizers via gesture() alongside built-in descriptors', () => {
@@ -208,10 +228,10 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     expect(calls).toEqual(['a:v1', 'tap:v1']);
 
     // Callback-only update hot-swaps closure without recreating recognizer:
-    const mgrBefore = binding.manager;
+    const mgrBefore = binding.instance;
     label = 'v2';
     binding.update(makeGestures('a'));
-    expect(binding.manager).toBe(mgrBefore);
+    expect(binding.instance).toBe(mgrBefore);
 
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 2, clientX: 10, timeStamp: 100}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 2, clientX: 10, timeStamp: 120}));
@@ -219,7 +239,7 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
 
     // Structural config change recreates recognizer cleanly:
     binding.update(makeGestures('b'));
-    expect(binding.manager).not.toBe(mgrBefore);
+    expect(binding.instance).not.toBe(mgrBefore);
 
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 3, clientX: 10, timeStamp: 200}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 3, clientX: 10, timeStamp: 220}));
@@ -259,14 +279,14 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       }) as F;
 
     const binding = new GestureBinding(element, makeList(4), {wrapCallback});
-    const initialManager = binding.manager;
+    const initialManager = binding.instance;
 
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 1, clientX: 0, timeStamp: 0}));
     document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 24, timeStamp: 16}));
     document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 44, timeStamp: 32}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 1, clientX: 44, timeStamp: 48}));
 
-    expect(binding.manager).toBe(initialManager);
+    expect(binding.instance).toBe(initialManager);
     expect(onPanCancel).not.toHaveBeenCalled();
     expect(onPanEnd).toHaveBeenCalledTimes(1);
     expect(seen).toEqual([
@@ -277,19 +297,19 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
 
     // Toggling an enabled callback key recreates manager:
     binding.update(makeList(4, true), {wrapCallback});
-    expect(binding.manager).not.toBe(initialManager);
+    expect(binding.instance).not.toBe(initialManager);
 
     // Structural slop change recreates manager:
-    const afterToggle = binding.manager;
+    const afterToggle = binding.instance;
     binding.update(makeList(12, true), {wrapCallback});
-    expect(binding.manager).not.toBe(afterToggle);
+    expect(binding.instance).not.toBe(afterToggle);
 
     // cancel() and destroy() are safe and idempotent:
     binding.cancel();
     binding.destroy();
     binding.destroy();
     binding.update(makeList(12, true));
-    expect(binding.manager).toBeNull();
+    expect(binding.instance).toBeNull();
   });
 
   it('GestureBinding diffs array options, relationship changes, and ignoreTarget transitions', () => {
@@ -306,22 +326,22 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       supportedPointerTypes: ['touch', 'mouse'],
       ignoreTarget: true,
     });
-    const m1 = binding.manager;
+    const m1 = binding.instance;
 
     // Equal array options keep the same manager:
     binding.update([tap({onTap})], {
       supportedPointerTypes: ['touch', 'mouse'],
       ignoreTarget: true,
     });
-    expect(binding.manager).toBe(m1);
+    expect(binding.instance).toBe(m1);
 
     // Changing array option values or length recreates manager:
     binding.update([tap({onTap})], {
       supportedPointerTypes: ['touch'],
       ignoreTarget: true,
     });
-    expect(binding.manager).not.toBe(m1);
-    const m2 = binding.manager;
+    expect(binding.instance).not.toBe(m1);
+    const m2 = binding.instance;
 
     // Structurally equal `update` hot-swaps closure immediately without remounting:
     tag = 'second';
@@ -329,7 +349,7 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       supportedPointerTypes: ['touch'],
       ignoreTarget: true,
     });
-    expect(binding.manager).toBe(m2);
+    expect(binding.instance).toBe(m2);
 
     const doTap = (target: HTMLElement, t: number) => {
       target.dispatchEvent(pointerEvent('pointerdown', {clientX: 5, clientY: 5, timeStamp: t}));
@@ -344,15 +364,15 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       supportedPointerTypes: ['touch'],
       ignoreTarget: target => target instanceof Element && Boolean(target.closest('[data-ignore]')),
     });
-    expect(binding.manager).not.toBe(m2);
-    const m3 = binding.manager;
+    expect(binding.instance).not.toBe(m2);
+    const m3 = binding.instance;
 
     // Replacing predicate fn1 -> fn2 hot-swaps without remounting:
     binding.update([tap({onTap})], {
       supportedPointerTypes: ['touch'],
       ignoreTarget: target => target instanceof Element && Boolean(target.closest('[data-ignore]')),
     });
-    expect(binding.manager).toBe(m3);
+    expect(binding.instance).toBe(m3);
 
     doTap(blocked, 100);
     doTap(inp, 150);
@@ -362,12 +382,12 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     const a = tap({onTap});
     const b = doubleTap({onTap});
     binding.update([a, b], {autoWire: false});
-    const m4 = binding.manager;
+    const m4 = binding.instance;
     const a2 = tap({onTap});
     const b2 = doubleTap({onTap});
     a2.requireFailureOf(b2);
     binding.update([a2, b2], {autoWire: false});
-    expect(binding.manager).not.toBe(m4);
+    expect(binding.instance).not.toBe(m4);
 
     // Dynamic `wrapCallback` updates take effect immediately without remounting:
     const wrappedHits = vi.fn();
@@ -378,9 +398,9 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       }) as F;
     const tapSpy = vi.fn();
     binding.update([tap({onTap: tapSpy})], {});
-    const m6 = binding.manager;
+    const m6 = binding.instance;
     binding.update([tap({onTap: tapSpy})], {wrapCallback: wrap});
-    expect(binding.manager).toBe(m6);
+    expect(binding.instance).toBe(m6);
     doTap(element, 300);
     expect(tapSpy).toHaveBeenCalledTimes(1);
     expect(wrappedHits).toHaveBeenCalledTimes(1);
@@ -391,9 +411,9 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     expect(dupTap.requiredFailures).toHaveLength(1);
 
     binding.update([tap({onTap: () => {}, slop: Number.NaN})]);
-    const m7 = binding.manager;
+    const m7 = binding.instance;
     binding.update([tap({onTap: () => {}, slop: Number.NaN})]);
-    expect(binding.manager).toBe(m7);
+    expect(binding.instance).toBe(m7);
 
     binding.destroy();
   });
@@ -429,13 +449,13 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     expect(onPanStart).toHaveBeenCalledTimes(1);
 
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: false});
-    expect(binding.manager).toBeNull();
+    expect(binding.instance).toBeNull();
     expect(element.style.touchAction || '').toBe('');
     expect(element.style.userSelect || '').toBe('');
 
     // Repeated updates while disabled stay a clean no-op:
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: false});
-    expect(binding.manager).toBeNull();
+    expect(binding.instance).toBeNull();
 
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 3, clientX: 0, timeStamp: 200}));
     document.dispatchEvent(
@@ -446,12 +466,12 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     // Re-enabling mounts cleanly, toggling undefined <-> default option values keeps the same manager,
     // and changing `propagate` remounts:
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: true});
-    const enabledMgr = binding.manager;
+    const enabledMgr = binding.instance;
     expect(enabledMgr).not.toBeNull();
     expect(element.style.touchAction).toBe('none');
 
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {});
-    expect(binding.manager).toBe(enabledMgr);
+    expect(binding.instance).toBe(enabledMgr);
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {
       enabled: true,
       autoWire: true,
@@ -459,10 +479,10 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
       touchAction: 'compute',
       ignoreTarget: true,
     });
-    expect(binding.manager).toBe(enabledMgr);
+    expect(binding.instance).toBe(enabledMgr);
 
     binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: true, propagate: true});
-    expect(binding.manager).not.toBe(enabledMgr);
+    expect(binding.instance).not.toBe(enabledMgr);
 
     // `ignoreTarget` receives `(target, event)` so callers can gate on coordinates/modifiers:
     const edgeTap = vi.fn();

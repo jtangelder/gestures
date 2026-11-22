@@ -34,8 +34,7 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build": "vite build && vite build --config vite.iife.config.ts && tsc --emitDeclarationOnly",
-    "build:iife": "vite build --config vite.iife.config.ts",
+    "build": "vite build && tsc --emitDeclarationOnly",
     "build:watch": "tsc --emitDeclarationOnly --watch & vite build --watch",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
@@ -50,8 +49,6 @@
     }
   },
   "types": "./dist/types/index.d.ts",
-  "unpkg": "./dist/gestures.min.js",
-  "jsdelivr": "./dist/gestures.min.js",
   "files": [
     "dist"
   ]

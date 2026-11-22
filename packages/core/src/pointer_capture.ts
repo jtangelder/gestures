@@ -1,7 +1,7 @@
 import {ListenerBag} from './dom_utils.js';
 
 /**
- * Tracks explicit pointer captures acquired by a `GestureManager` on its target element so
+ * Tracks explicit pointer captures acquired by a `Gestures` instance on its target element so
  * releases are idempotent and `lostpointercapture` only aborts pointers we actually captured.
  */
 export class PointerCapture {

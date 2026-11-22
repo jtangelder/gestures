@@ -8,54 +8,28 @@ Modern multi-touch and pointer gesture recognition engine for the web. Zero depe
 npm install @gestures/core
 ```
 
-Or drop the classic minified browser build directly into a `<script>` tag (exposes `window.Gestures`, no ES modules required):
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@gestures/core/dist/gestures.min.js"></script>
-<script>
-  const gestures = new Gestures(document.getElementById('stage'), {
-    onTap: ev => console.log('Tap', ev.center),
-    onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
-  });
-
-  // Modular descriptors are also available on window.Gestures:
-  // new Gestures.GestureManager(el, { gestures: [Gestures.tap(...), Gestures.pan(...)] })
-</script>
-```
-
 ## Usage
 
 ### Declarative descriptors (tree-shakable)
 
 ```ts
-import {
-  GestureManager,
-  doubleTap,
-  longPress,
-  pan,
-  quickScale,
-  rotate,
-  scale,
-  tap,
-} from '@gestures/core';
+import {Gestures, doubleTap, longPress, pan, quickScale, rotate, scale, tap} from '@gestures/core';
 
-const manager = new GestureManager(element, {
-  gestures: [
-    tap({onTap: ev => console.log('Tap', ev.center, ev.pointerType, ev.target)}),
-    doubleTap({onTap: ev => console.log('Double tap', ev.center)}),
-    longPress({duration: 500, onLongPress: ev => console.log('Hold', ev.center)}),
-    pan({
-      numPointers: 0,
-      onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
-      onSwipe: ev => console.log('Swipe', ev.direction),
-    }),
-    scale({onScale: ev => console.log('Scale', ev.scale)}),
-    quickScale({onScale: ev => console.log('QuickScale', ev.scale)}),
-    rotate({onRotate: ev => console.log('Rotate', ev.rotation)}),
-  ],
-});
+const gestures = new Gestures(element, [
+  tap({onTap: ev => console.log('Tap', ev.center, ev.pointerType, ev.target)}),
+  doubleTap({onTap: ev => console.log('Double tap', ev.center)}),
+  longPress({duration: 500, onLongPress: ev => console.log('Hold', ev.center)}),
+  pan({
+    numPointers: 0,
+    onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
+    onSwipe: ev => console.log('Swipe', ev.direction),
+  }),
+  scale({onScale: ev => console.log('Scale', ev.scale)}),
+  quickScale({onScale: ev => console.log('QuickScale', ev.scale)}),
+  rotate({onRotate: ev => console.log('Rotate', ev.rotation)}),
+]);
 
-manager.destroy();
+gestures.destroy();
 ```
 
 Use `swipe({direction: 'horizontal', onSwipe})` when you only need flick detection without continuous pan tracking.
@@ -67,7 +41,7 @@ Use `swipe({direction: 'horizontal', onSwipe})` when you only need flick detecti
 Subclass `GestureRecognizer` and wrap it with `gesture(...)` to compose seamlessly alongside built-in descriptors:
 
 ```ts
-import {GestureManager, GestureRecognizer, gesture, tap, type MotionEvent} from '@gestures/core';
+import {Gestures, GestureRecognizer, gesture, tap, type MotionEvent} from '@gestures/core';
 
 class InstantPressRecognizer extends GestureRecognizer {
   constructor(private readonly callbacks: {onPress?: () => void}) {
@@ -82,23 +56,24 @@ const press = gesture(cbs => new InstantPressRecognizer(cbs), {
   onPress: () => console.log('Pressed'),
 });
 
-const manager = new GestureManager(element, {
-  gestures: [press, tap({onTap: () => console.log('Tap')}).simultaneousWith(press)],
-});
+const gestures = new Gestures(element, [
+  press,
+  tap({onTap: () => console.log('Tap')}).simultaneousWith(press),
+]);
 ```
 
 ### Options
 
+Pass an optional third argument `new Gestures(element, gestures, options)`:
+
 | Option                  | Default                     | Description                                                                                                                    |
 | :---------------------- | :-------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `gestures`              | `[]`                        | Tree-shakable `GestureDescriptor[]` (`tap`, `doubleTap`, `longPress`, `pan`, `swipe`, `scale`, `quickScale`, `rotate`).        |
-| `recognizers`           | `[]`                        | Low-level `GestureRecognizer[]` instances registered directly in the arena.                                                    |
 | `enabled`               | `true`                      | Set to `false` to disable listeners and surface guards (`touch-action` / `user-select`).                                       |
 | `autoWire`              | `true`                      | Automatically wires standard relationships (`tap` waits on `doubleTap`/`quickScale`, `scale` simultaneous with `rotate`).      |
 | `touchAction`           | `'compute'`                 | Automatically computes least-restrictive CSS `touch-action`, accepts an explicit value, or `false` to opt out.                 |
 | `supportedPointerTypes` | `['touch', 'pen', 'mouse']` | Pointer modalities to observe.                                                                                                 |
 | `ignoreTarget`          | `true`                      | Ignores `<input>`, `<textarea>`, `<select>`, `<option>`, `[contenteditable]`; accepts `false` or `(target, event) => boolean`. |
-| `propagate`             | `false`                     | When `false`, winning a gesture cancels competing nested `GestureManager` surfaces sharing the pointer stream.                 |
+| `propagate`             | `false`                     | When `false`, winning a gesture cancels competing nested `Gestures` surfaces sharing the pointer stream.                       |
 
 ## Event Data
 

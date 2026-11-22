@@ -21,24 +21,16 @@ const FEATURES: ReadonlyArray<{title: string; body: string}> = [
     body: 'Unified touch, pen, and mouse input with progressive getCoalescedEvents() sampling, polynomial velocity tracking, and an order-independent GestureArena.',
   },
   {
-    title: 'Broad Browser Support (2017+)',
-    body: 'Runs across Chrome 60+ (2017), Firefox 59+ (2018), Safari 13+ (2019), and Edge 79+ (2020) with progressive feature detection for newer browser APIs.',
+    title: 'Broad Browser Support',
+    body: 'Runs on iOS & iPadOS 13+, Android 5.0+ (Chrome & WebView), and every modern desktop browser — with progressive feature detection for newer APIs.',
   },
   {
-    title: 'Tree-Shakable Descriptors',
-    body: 'Import only what you use — tap, doubleTap, longPress, pan, swipe, scale, quickScale, rotate — with smart default relationships auto-wired.',
-  },
-  {
-    title: 'Web-Native Coexistence',
-    body: 'Computes the least-restrictive CSS touch-action, acquires pointer capture lazily, suppresses ghost clicks, and coordinates nested surfaces.',
-  },
-  {
-    title: 'Tiny Framework Adapters',
-    body: 'First-class @gestures/react hook and zone-aware @gestures/angular directive that hot-swap inline closures without cancelling active drags.',
+    title: 'Tree-Shakable & Lightweight',
+    body: 'Import only what you use — ~7.2 kB gzipped for tap up to ~12.3 kB for every recognizer — with smart default relationships auto-wired.',
   },
   {
     title: 'Standalone Trackpad Pinch',
-    body: 'Opt-in @gestures/trackpad package handles ctrl+wheel and macOS Safari GestureEvent pinch-to-zoom while keeping @gestures/core Pointer Events only.',
+    body: 'Opt-in @gestures/trackpad handles ctrl+wheel and macOS Safari GestureEvent pinch-to-zoom.',
   },
 ];
 
@@ -272,7 +264,7 @@ export function LandingPage() {
       <main className="container landing-main">
         <section className="hero-grid" aria-label="Introduction and interactive demo">
           <div className="hero-copy">
-            <p className="eyebrow">0.1.0-alpha · Zero dependencies · Strict TypeScript</p>
+            <p className="eyebrow">0.1.0-alpha · ~7–12 kB gzipped · Zero dependencies</p>
             <h2>Modern pointer &amp; multi-touch gestures for the web</h2>
             <p>
               A lightweight gesture recognition engine built around W3C Pointer Events,
@@ -311,9 +303,8 @@ export function LandingPage() {
         <section aria-label="Code examples">
           <h2>Quick Start</h2>
           <p>
-            Start quickly with the all-in-one <code>Gestures</code> class, compose tree-shakable
-            descriptors with <code>GestureManager</code>, or integrate cleanly with React, Angular,
-            and laptop trackpads.
+            One tree-shakable descriptor API across Vanilla JS, React, Angular, and standalone
+            laptop trackpad pinch.
           </p>
           <CodeExamples />
         </section>
@@ -324,12 +315,22 @@ export function LandingPage() {
               <h2>Packages</h2>
             </header>
             <table className="env-table">
+              <thead>
+                <tr>
+                  <th scope="col">Package</th>
+                  <th scope="col">Description</th>
+                  <th scope="col" className="size-cell">
+                    Gzipped
+                  </th>
+                </tr>
+              </thead>
               <tbody>
                 <tr>
                   <th scope="row">
                     <code>@gestures/core</code>
                   </th>
-                  <td>Pointer engine, descriptors, recognizers &amp; drop-in IIFE build</td>
+                  <td>Pointer engine, tree-shakable descriptors &amp; recognizers</td>
+                  <td className="size-cell">~7.2–12.3 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -338,6 +339,7 @@ export function LandingPage() {
                   <td>
                     Tree-shakable <code>useGestures</code> React hook
                   </td>
+                  <td className="size-cell">~0.3 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -346,6 +348,7 @@ export function LandingPage() {
                   <td>
                     Standalone zone-aware <code>[gestures]</code> directive
                   </td>
+                  <td className="size-cell">~0.7 kB</td>
                 </tr>
                 <tr>
                   <th scope="row">
@@ -355,6 +358,7 @@ export function LandingPage() {
                     Standalone laptop trackpad pinch-to-zoom (<code>ctrl+wheel</code> &amp; Safari{' '}
                     <code>GestureEvent</code>)
                   </td>
+                  <td className="size-cell">~1.8 kB</td>
                 </tr>
               </tbody>
             </table>

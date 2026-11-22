@@ -130,7 +130,7 @@ export function createDescriptor(
 
 /**
  * Wraps a custom `GestureRecognizer` factory into a `GestureDescriptor` so it can compose
- * with built-in descriptors (`tap`, `pan`, ...) in `GestureManager` and framework adapters.
+ * with built-in descriptors (`tap`, `pan`, ...) in `Gestures` and framework adapters.
  *
  * Pass inline handlers in `callbacks` so framework adapters hot-swap closures without cancelling
  * active gestures, and pass structural parameters in `config` so changes trigger recreation.

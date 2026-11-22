@@ -6,15 +6,10 @@ import {
   resolveGestures,
   snapshotStructure,
 } from './descriptors.js';
-import {GestureManager, type GestureManagerOptions} from './gesture_manager.js';
+import {Gestures, type GesturesOptions} from './gestures.js';
 import type {GestureTargetElement, TouchActionSetting} from './touch_action.js';
 
 export type CallbackWrapper = <F extends (...args: never[]) => unknown>(fn: F) => F;
-
-export type GesturesOptions = Pick<
-  GestureManagerOptions,
-  'enabled' | 'supportedPointerTypes' | 'touchAction' | 'ignoreTarget' | 'autoWire' | 'propagate'
->;
 
 export interface GestureBindingOptions extends GesturesOptions {
   /** Optional wrapper applied when invoking callbacks (e.g. Angular `NgZone.run`). */
@@ -107,12 +102,12 @@ function matchesBinding(
  * Reactive, tree-shakable lifecycle controller that binds `GestureDescriptor`s to a DOM element.
  *
  * Inline callback changes hot-swap seamlessly without tearing down active gestures; the underlying
- * `GestureManager` is only recreated when structural options, descriptor composition, or arena
+ * `Gestures` instance is only recreated when structural options, descriptor composition, or arena
  * relationships change.
  */
 export class GestureBinding<T extends GestureTargetElement = GestureTargetElement> {
   readonly element: T;
-  private currentManager: GestureManager<T> | null = null;
+  private current: Gestures<T> | null = null;
   private latestGestures: readonly GestureDescriptor[];
   private latestOptions: GestureBindingOptions;
   private mountedSnapshot: BindingSnapshot | null = null;
@@ -129,13 +124,13 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
     this.mount();
   }
 
-  get manager(): GestureManager<T> | null {
-    return this.currentManager;
+  get instance(): Gestures<T> | null {
+    return this.current;
   }
 
   /**
    * Syncs new descriptors and options, hot-swapping callbacks in place when structurally equal
-   * and recreating the `GestureManager` only when structural configuration changes.
+   * and recreating the `Gestures` instance only when structural configuration changes.
    */
   update(gestures: readonly GestureDescriptor[], options: GestureBindingOptions = {}): void {
     this.latestGestures = gestures;
@@ -146,13 +141,13 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
     if (this.mountedSnapshot && matchesBinding(this.mountedSnapshot, gestures, options)) {
       return;
     }
-    this.currentManager?.destroy();
-    this.currentManager = null;
+    this.current?.destroy();
+    this.current = null;
     this.mount();
   }
 
   cancel(): void {
-    this.currentManager?.cancel();
+    this.current?.cancel();
   }
 
   destroy(): void {
@@ -160,8 +155,8 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
       return;
     }
     this.destroyed = true;
-    this.currentManager?.destroy();
-    this.currentManager = null;
+    this.current?.destroy();
+    this.current = null;
     this.mountedSnapshot = null;
   }
 
@@ -171,7 +166,7 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
     this.mountedSnapshot = snapshotBinding(gestures, options);
 
     if (options.enabled === false) {
-      this.currentManager = null;
+      this.current = null;
       return;
     }
 
@@ -188,12 +183,11 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
           }
         : options.ignoreTarget;
 
-    this.currentManager = new GestureManager(this.element, {
+    this.current = new Gestures(this.element, recognizers, {
       supportedPointerTypes: options.supportedPointerTypes,
       touchAction: options.touchAction,
       ignoreTarget,
       propagate: options.propagate,
-      recognizers,
     });
   }
 

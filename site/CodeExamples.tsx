@@ -16,42 +16,21 @@ const EXAMPLES: readonly ExampleTab[] = [
     id: 'vanilla',
     label: 'Vanilla JS',
     install: 'npm install @gestures/core',
-    code: `import {Gestures} from '@gestures/core';
+    code: `import {Gestures, doubleTap, pan, rotate, scale, tap} from '@gestures/core';
 
-const gestures = new Gestures(element, {
-  onTap: ev => console.log('Tap', ev.center),
-  onDoubleTap: ev => console.log('Double tap', ev.center),
-  onLongPress: ev => console.log('Hold', ev.center),
-  onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
-  onSwipe: ev => console.log('Swipe', ev.direction),
-  onScale: ev => console.log('Scale', ev.scale),
-  onRotate: ev => console.log('Rotate', ev.rotation),
-  quickScale: true,
-});
+const gestures = new Gestures(element, [
+  tap({onTap: ev => console.log('Tap', ev.center)}),
+  doubleTap({onTap: ev => console.log('Double tap', ev.center)}),
+  pan({
+    numPointers: 0,
+    onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
+    onSwipe: ev => console.log('Swipe', ev.direction),
+  }),
+  scale({onScale: ev => console.log('Scale', ev.scale)}),
+  rotate({onRotate: ev => console.log('Rotate', ev.rotation)}),
+]);
 
 gestures.destroy();`,
-  },
-  {
-    id: 'tree-shakable',
-    label: 'Tree-Shakable',
-    install: 'npm install @gestures/core',
-    code: `import {GestureManager, doubleTap, pan, rotate, scale, tap} from '@gestures/core';
-
-const manager = new GestureManager(element, {
-  gestures: [
-    tap({onTap: ev => console.log('Tap', ev.center)}),
-    doubleTap({onTap: ev => console.log('Double tap', ev.center)}),
-    pan({
-      numPointers: 0,
-      onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
-      onSwipe: ev => console.log('Swipe', ev.direction),
-    }),
-    scale({onScale: ev => console.log('Scale', ev.scale)}),
-    rotate({onRotate: ev => console.log('Rotate', ev.rotation)}),
-  ],
-});
-
-manager.destroy();`,
   },
   {
     id: 'react',
