@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@gestures/core': resolve(rootDir, 'packages/core/src/index.ts'),
+      '@gestures/react/trackpad': resolve(rootDir, 'packages/react/src/trackpad.ts'),
       '@gestures/react': resolve(rootDir, 'packages/react/src/index.ts'),
       '@gestures/trackpad': resolve(rootDir, 'packages/trackpad/src/index.ts'),
     },

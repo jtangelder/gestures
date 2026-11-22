@@ -71,6 +71,26 @@ describe('SurfaceGuard', () => {
     const postSpy = vi.spyOn(postCleanupDrag, 'preventDefault');
     element.dispatchEvent(postCleanupDrag);
     expect(postSpy).not.toHaveBeenCalled();
+
+    // Touch/pen-only surfaces suppress iOS callout without blocking desktop mouse text selection:
+    const touchOnlyEl = document.createElement('div');
+    const touchOnlyGuard = createGuard(touchOnlyEl, {
+      supportedPointerTypes: ['touch', 'pen'],
+      actions: ['pan-y pinch-zoom'],
+      hasContinuousRecognizer: true,
+    });
+    expect(touchOnlyEl.style.touchAction).toBe('pan-y pinch-zoom');
+    expect(touchOnlyEl.style.userSelect || '').toBe('');
+    expect((touchOnlyEl.style as unknown as Record<string, string>).webkitUserSelect || '').toBe(
+      ''
+    );
+    expect((touchOnlyEl.style as unknown as Record<string, string>).webkitTouchCallout).toBe(
+      'none'
+    );
+    touchOnlyGuard.destroy();
+    expect((touchOnlyEl.style as unknown as Record<string, string>).webkitTouchCallout || '').toBe(
+      ''
+    );
   });
 
   it('coordinates element/document coexistence guards and cleans up on destroy', () => {

@@ -1,6 +1,6 @@
 import {doubleTap, longPress, pan, quickScale, rotate, scale, tap} from '@gestures/core';
 import {useGestures} from '@gestures/react';
-import {TrackpadScale} from '@gestures/trackpad';
+import {useTrackpadScale} from '@gestures/react/trackpad';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {CodeExamples} from './CodeExamples';
 import {round} from './config';
@@ -44,7 +44,6 @@ function HeroDemo() {
   const liveRef = useRef({tx: 0, ty: 0, scale: 1, rot: 0});
   const swipedRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const trackpadRef = useRef<TrackpadScale | null>(null);
 
   const clearTimer = () => {
     if (resetTimerRef.current !== null) {
@@ -154,12 +153,22 @@ function HeroDemo() {
     }),
   ]);
 
+  const trackpadRef = useTrackpadScale<HTMLDivElement>({
+    onScale: ev => {
+      updateCard({scale: ev.scale});
+      setStatus(`Trackpad Pinch ${ev.scale.toFixed(2)}×`);
+    },
+    onScaleEnd: resetCard,
+    onScaleCancel: resetCard,
+  });
+
   const bindStage = useCallback(
     (node: HTMLDivElement | null) => {
       gestureRef(node);
+      trackpadRef(node);
       setStageEl(node);
     },
-    [gestureRef]
+    [gestureRef, trackpadRef]
   );
 
   // Track pointer count so multi-touch rotate/scale springs back once the final finger lifts
@@ -168,7 +177,6 @@ function HeroDemo() {
     const ids = new Set<number>();
     const onDown = (e: PointerEvent) => {
       clearTimer();
-      trackpadRef.current?.cancel();
       ids.add(e.pointerId);
       activePointersRef.current = ids.size;
     };
@@ -196,24 +204,6 @@ function HeroDemo() {
       document.removeEventListener('pointerup', onEnd);
       document.removeEventListener('pointercancel', onEnd);
       window.removeEventListener('blur', onBlur);
-    };
-  }, [stageEl, resetCard]);
-
-  // Attach standalone TrackpadScale for MacBook trackpad pinch-to-zoom
-  useEffect(() => {
-    if (!stageEl) return;
-    const tp = new TrackpadScale(stageEl, {
-      onScale: ev => {
-        updateCard({scale: ev.scale});
-        setStatus(`Trackpad Pinch ${ev.scale.toFixed(2)}×`);
-      },
-      onScaleEnd: resetCard,
-      onScaleCancel: resetCard,
-    });
-    trackpadRef.current = tp;
-    return () => {
-      tp.destroy();
-      trackpadRef.current = null;
     };
   }, [stageEl, resetCard]);
 

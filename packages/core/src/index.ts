@@ -15,13 +15,11 @@ export type {GestureTargetElement, TouchActionSetting, TouchActionValue} from '.
 
 export {
   longPress,
-  LongPressRecognizer,
   type LongPressEventData,
   type LongPressGestureOptions,
 } from './recognizers/long_press_recognizer.js';
 export {
   pan,
-  PanRecognizer,
   swipe,
   type CardinalDirection,
   type PanDirection,
@@ -30,27 +28,20 @@ export {
   type SwipeEventData,
   type SwipeGestureOptions,
 } from './recognizers/pan_recognizer.js';
-export {
-  quickScale,
-  QuickScaleRecognizer,
-  type QuickScaleGestureOptions,
-} from './recognizers/quick_scale_recognizer.js';
+export {quickScale, type QuickScaleGestureOptions} from './recognizers/quick_scale_recognizer.js';
 export {
   rotate,
-  RotateRecognizer,
   type RotateEventData,
   type RotateGestureOptions,
 } from './recognizers/rotate_recognizer.js';
 export {
   scale,
-  ScaleRecognizer,
   type ScaleEventData,
   type ScaleGestureOptions,
 } from './recognizers/scale_recognizer.js';
 export {
   doubleTap,
   tap,
-  TapRecognizer,
   type DoubleTapGestureOptions,
   type TapGestureOptions,
 } from './recognizers/tap_recognizer.js';

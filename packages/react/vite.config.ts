@@ -10,12 +10,15 @@ export default defineConfig({
     minify: false,
     sourcemap: true,
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        trackpad: resolve(__dirname, 'src/trackpad.ts'),
+      },
       formats: ['es'],
-      fileName: () => 'index.es.js',
+      fileName: (_format, name) => `${name}.es.js`,
     },
     rolldownOptions: {
-      external: ['@gestures/core', 'react'],
+      external: ['@gestures/core', '@gestures/trackpad', 'react'],
     },
   },
   test: {

@@ -3,6 +3,7 @@ import {act, cleanup, render} from '@testing-library/react';
 import {StrictMode, createElement, useState, type RefCallback} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {useGestures, type GesturesOptions} from '../src/index.js';
+import {useTrackpadScale} from '../src/trackpad.js';
 
 interface MockPointerInit {
   pointerId?: number;
@@ -273,5 +274,44 @@ describe('@gestures/react useGestures', () => {
       );
     });
     expect(onOuterSwipe).toHaveBeenCalledWith(expect.objectContaining({direction: 'right'}));
+  });
+
+  it('useTrackpadScale attaches TrackpadScale, hot-swaps callbacks, and respects enabled', () => {
+    const scales: number[] = [];
+
+    function TrackpadDemo({enabled, mult}: {enabled: boolean; mult: number}) {
+      const ref = useTrackpadScale<HTMLDivElement>({
+        enabled,
+        onScale: ev => scales.push(Math.round(ev.scale * mult)),
+      });
+      return createElement('div', {ref, 'data-testid': 'tp'});
+    }
+
+    const {getByTestId, rerender} = render(createElement(TrackpadDemo, {enabled: false, mult: 10}));
+    const tp = getByTestId('tp');
+    act(() => {
+      tp.dispatchEvent(
+        new WheelEvent('wheel', {bubbles: true, cancelable: true, ctrlKey: true, deltaY: -50})
+      );
+    });
+    expect(scales).toEqual([]);
+
+    rerender(createElement(TrackpadDemo, {enabled: true, mult: 10}));
+    act(() => {
+      tp.dispatchEvent(
+        new WheelEvent('wheel', {bubbles: true, cancelable: true, ctrlKey: true, deltaY: -50})
+      );
+    });
+    expect(scales).toHaveLength(1);
+
+    // Hot-swaps closure without resetting active trackpad scale:
+    rerender(createElement(TrackpadDemo, {enabled: true, mult: 100}));
+    act(() => {
+      tp.dispatchEvent(
+        new WheelEvent('wheel', {bubbles: true, cancelable: true, ctrlKey: true, deltaY: -50})
+      );
+    });
+    expect(scales).toHaveLength(2);
+    expect(scales[1]).toBeGreaterThan(150);
   });
 });

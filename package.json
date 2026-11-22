@@ -10,8 +10,9 @@
   },
   "scripts": {
     "dev": "vite --config site/vite.config.ts",
-    "build": "npm -w @gestures/core run build && npm --workspaces --if-present run build",
+    "build": "npm -w @gestures/core run build && npm -w @gestures/trackpad run build && npm --workspaces --if-present run build",
     "build:site": "vite build --config site/vite.config.ts",
+    "size": "node scripts/check-size.mjs",
     "test": "npm --workspaces --if-present run test && npm run test:site",
     "test:unit": "npm --workspaces --if-present run test:unit && npm run test:site",
     "test:site": "vitest run --config site/vite.config.ts",

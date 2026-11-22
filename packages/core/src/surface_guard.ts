@@ -18,9 +18,9 @@ type WebkitStyle = CSSStyleDeclaration & {
 interface SavedSurfaceStyles {
   readonly touchAction: string | null;
   readonly selection: {
-    readonly userSelect: string;
-    readonly webkitUserSelect: string;
-    readonly webkitTouchCallout: string;
+    readonly userSelect: string | null;
+    readonly webkitUserSelect: string | null;
+    readonly webkitTouchCallout: string | null;
   } | null;
 }
 
@@ -86,6 +86,7 @@ export class SurfaceGuard {
       return;
     }
 
+    const supportsMouse = this.supportedPointerTypes.includes('mouse');
     const supportsTouch = this.supportedPointerTypes.includes('touch');
     const supportsTouchOrPen = supportsTouch || this.supportedPointerTypes.includes('pen');
 
@@ -112,20 +113,26 @@ export class SurfaceGuard {
     }
 
     let prevSelection: SavedSurfaceStyles['selection'] = null;
-    if (hasContinuousRecognizer) {
+    if (hasContinuousRecognizer && (supportsMouse || supportsTouchOrPen)) {
       prevSelection = {
-        userSelect: style.userSelect ?? '',
-        webkitUserSelect: style.webkitUserSelect ?? '',
-        webkitTouchCallout: style.webkitTouchCallout ?? '',
+        userSelect: supportsMouse ? (style.userSelect ?? '') : null,
+        webkitUserSelect: supportsMouse ? (style.webkitUserSelect ?? '') : null,
+        webkitTouchCallout: supportsTouchOrPen ? (style.webkitTouchCallout ?? '') : null,
       };
-      style.webkitUserSelect = 'none';
-      style.userSelect = 'none';
-      style.webkitTouchCallout = 'none';
+      if (supportsMouse) {
+        style.webkitUserSelect = 'none';
+        style.userSelect = 'none';
+      }
+      if (supportsTouchOrPen) {
+        style.webkitTouchCallout = 'none';
+      }
     }
     this.savedStyles = {touchAction: prevTouchAction, selection: prevSelection};
 
     if (hasContinuousRecognizer) {
-      this.surfaceListeners.add(el, 'dragstart', this);
+      if (supportsMouse) {
+        this.surfaceListeners.add(el, 'dragstart', this);
+      }
       this.surfaceListeners.add(el, 'contextmenu', this);
     }
     if (
@@ -199,9 +206,15 @@ export class SurfaceGuard {
     if (this.savedStyles) {
       const style = this.element.style as WebkitStyle;
       if (this.savedStyles.selection) {
-        style.webkitTouchCallout = this.savedStyles.selection.webkitTouchCallout;
-        style.userSelect = this.savedStyles.selection.userSelect;
-        style.webkitUserSelect = this.savedStyles.selection.webkitUserSelect;
+        if (this.savedStyles.selection.webkitTouchCallout !== null) {
+          style.webkitTouchCallout = this.savedStyles.selection.webkitTouchCallout;
+        }
+        if (this.savedStyles.selection.userSelect !== null) {
+          style.userSelect = this.savedStyles.selection.userSelect;
+        }
+        if (this.savedStyles.selection.webkitUserSelect !== null) {
+          style.webkitUserSelect = this.savedStyles.selection.webkitUserSelect;
+        }
       }
       if (this.savedStyles.touchAction !== null) {
         style.touchAction = this.savedStyles.touchAction;

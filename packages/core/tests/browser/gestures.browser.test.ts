@@ -3,14 +3,11 @@ import {cdp} from 'vitest/browser';
 import {
   Gestures,
   pan,
-  PanRecognizer,
   quickScale,
   rotate,
   scale,
-  ScaleRecognizer,
   swipe,
   tap,
-  TapRecognizer,
   type RotateEventData,
   type ScaleEventData,
 } from '../../src/index';
@@ -160,7 +157,7 @@ describe('Gestures in a real browser (Chromium)', () => {
 
   it('recognizes a pinch whose fingers start on two different child elements', async () => {
     const scales: ScaleEventData[] = [];
-    manager = new Gestures(surface, [new ScaleRecognizer({onScale: ev => scales.push(ev)})]);
+    manager = new Gestures(surface, [scale({onScale: ev => scales.push(ev)})]);
 
     const a = {id: 1, x: 50, y: 150};
     const b = {id: 2, x: 240, y: 150};
@@ -177,7 +174,7 @@ describe('Gestures in a real browser (Chromium)', () => {
 
   it('includes a second finger that lands outside the element (straddling pinch)', async () => {
     const onScaleStart = vi.fn();
-    manager = new Gestures(surface, [new ScaleRecognizer({onScaleStart})]);
+    manager = new Gestures(surface, [scale({onScaleStart})]);
 
     const inside = {id: 1, x: 150, y: 150};
     const outside = {id: 2, x: 380, y: 150};
@@ -194,7 +191,7 @@ describe('Gestures in a real browser (Chromium)', () => {
     const onTap = vi.fn();
     const onButtonClick = vi.fn();
     document.getElementById('child-b')!.addEventListener('click', onButtonClick);
-    manager = new Gestures(surface, [new TapRecognizer({onTap})]);
+    manager = new Gestures(surface, [tap({onTap})]);
 
     const finger = {id: 1, x: 240, y: 150};
     await touch('touchStart', [finger]);
@@ -208,7 +205,7 @@ describe('Gestures in a real browser (Chromium)', () => {
     const onPanEnd = vi.fn();
     const onSurfaceClick = vi.fn();
     surface.addEventListener('click', onSurfaceClick);
-    manager = new Gestures(surface, [new PanRecognizer({onPanEnd})]);
+    manager = new Gestures(surface, [pan({onPanEnd})]);
 
     await mouse('mousePressed', 240, 150);
     for (const x of [260, 300, 360, 420]) {
@@ -221,7 +218,7 @@ describe('Gestures in a real browser (Chromium)', () => {
   });
 
   it('applies the computed touch-action natively', () => {
-    manager = new Gestures(surface, [new PanRecognizer({}, {direction: 'horizontal'})]);
+    manager = new Gestures(surface, [pan({direction: 'horizontal'})]);
     expect(getComputedStyle(surface).touchAction).toBe('pan-y pinch-zoom');
   });
 
@@ -234,7 +231,7 @@ describe('Gestures in a real browser (Chromium)', () => {
     const carousel = document.getElementById('carousel')!;
     const onPan = vi.fn();
 
-    manager = new Gestures(carousel, [new PanRecognizer({onPan}, {direction: 'horizontal'})]);
+    manager = new Gestures(carousel, [pan({direction: 'horizontal', onPan})]);
     expect(getComputedStyle(carousel).touchAction).toBe('pan-y pinch-zoom');
 
     // Vertical touch drag should scroll the container natively without triggering horizontal pan:
@@ -253,7 +250,7 @@ describe('Gestures in a real browser (Chromium)', () => {
     const onPanEnd = vi.fn();
     const onButtonClick = vi.fn();
     document.getElementById('child-b')!.addEventListener('click', onButtonClick);
-    manager = new Gestures(surface, [new PanRecognizer({onPanEnd})]);
+    manager = new Gestures(surface, [pan({onPanEnd})]);
 
     await touchDrag(1, {x: 240, y: 150}, {x: 120, y: 150});
 
@@ -278,7 +275,7 @@ describe('Gestures in a real browser (Chromium)', () => {
     const onPanEnd = vi.fn();
     outer.addEventListener('click', onOuterClick);
 
-    manager = new Gestures(inner, [new TapRecognizer({onTap}), new PanRecognizer({onPanEnd})]);
+    manager = new Gestures(inner, [tap({onTap}), pan({onPanEnd})]);
 
     await touch('touchStart', [{id: 1, x: 150, y: 150}]);
     await touch('touchEnd', []);

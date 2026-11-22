@@ -40,3 +40,15 @@ export function DraggableCard({enabled = true}: {enabled?: boolean}) {
 
 - Inline callbacks do **not** require `useCallback` or `useMemo` — updating React state mid-drag never cancels an active gesture.
 - Only the gesture factories you import from `@gestures/core` are bundled.
+
+## Trackpad Pinch Hook (`@gestures/react/trackpad`)
+
+If you also install `@gestures/trackpad`, you can use the optional `useTrackpadScale` hook:
+
+```tsx
+import {useTrackpadScale} from '@gestures/react/trackpad';
+
+const ref = useTrackpadScale<HTMLDivElement>({
+  onScale: ev => console.log('Trackpad scale', ev.scale),
+});
+```

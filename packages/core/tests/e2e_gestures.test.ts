@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {userEvent} from '@testing-library/user-event';
-import {Gestures, PanRecognizer, TapRecognizer} from '../src/index';
+import {doubleTap, Gestures, pan, tap} from '../src/index';
 
 describe('Gesture Engine E2E', () => {
   let element: HTMLElement;
@@ -28,10 +28,7 @@ describe('Gesture Engine E2E', () => {
     const innerBtn = document.getElementById('inner-btn')!;
     innerBtn.addEventListener('click', btnClickSpy);
 
-    manager = new Gestures(element, [
-      new TapRecognizer({onTap: tapSpy}),
-      new PanRecognizer({onPan: panSpy}),
-    ]);
+    manager = new Gestures(element, [tap({onTap: tapSpy}), pan({onPan: panSpy})]);
 
     await user.click(innerBtn);
 
@@ -42,7 +39,7 @@ describe('Gesture Engine E2E', () => {
 
   it('recognizes a double-tap gesture via user-event', async () => {
     const doubleTapSpy = vi.fn();
-    manager = new Gestures(element, [new TapRecognizer({onTap: doubleTapSpy}, {taps: 2})]);
+    manager = new Gestures(element, [doubleTap({onTap: doubleTapSpy})]);
 
     await user.dblClick(element);
 
@@ -60,15 +57,13 @@ describe('Gesture Engine E2E', () => {
     innerBtn.addEventListener('click', btnClickSpy);
 
     manager = new Gestures(element, [
-      new TapRecognizer({onTap: tapSpy}),
-      new PanRecognizer(
-        {
-          onPanStart: startSpy,
-          onPan: panSpy,
-          onPanEnd: endSpy,
-        },
-        {slop: 4}
-      ),
+      tap({onTap: tapSpy}),
+      pan({
+        slop: 4,
+        onPanStart: startSpy,
+        onPan: panSpy,
+        onPanEnd: endSpy,
+      }),
     ]);
 
     await user.pointer([

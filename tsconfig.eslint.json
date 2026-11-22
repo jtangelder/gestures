@@ -10,6 +10,7 @@
     "paths": {
       "@gestures/core": ["./packages/core/src/index.ts"],
       "@gestures/react": ["./packages/react/src/index.ts"],
+      "@gestures/react/trackpad": ["./packages/react/src/trackpad.ts"],
       "@gestures/trackpad": ["./packages/trackpad/src/index.ts"]
     }
   },
