@@ -775,6 +775,15 @@
                       />
                       1F QuickScale (Double-tap + drag)
                     </label>
+                    <label for="enableTrackpadScale">
+                      <input
+                        type="checkbox"
+                        id="enableTrackpadScale"
+                        name="enableTrackpadScale"
+                        checked
+                      />
+                      Trackpad Pinch (<code>@gestures/trackpad</code>)
+                    </label>
                   </div>
                   <div class="config-grid-2">
                     <label for="scaleRotateSimultaneous">
@@ -826,8 +835,8 @@
 
     <footer class="container">
       <p>
-        <strong>Cross-device testing tips:</strong> Run <code>npx vite --host</code> to open this
-        playground on Android, iPhone, and iPad over local Wi-Fi. Switch to the
+        <strong>Cross-device testing tips:</strong> Run <code>npm run dev -- --host</code> to open
+        this playground on Android, iPhone, and iPad over local Wi-Fi. Switch to the
         <em>Horizontal Carousel</em> or <em>Tap &amp; LongPress Feed Card</em> preset and try
         scrolling the page vertically starting inside the stage to verify native scroll coexistence;
         tap vs. drag starting on <strong>Child Button</strong> to verify native click preservation

@@ -4,8 +4,8 @@ import {describe, expect, it} from 'vitest';
 import {userEvent} from '@testing-library/user-event';
 
 describe('Playground UI & Diagnostics', () => {
-  it('mounts playground.html, switches presets, updates touch-action, and logs gestures', async () => {
-    const html = readFileSync(resolve(__dirname, './playground.html'), 'utf8');
+  it('mounts index.html, switches presets, updates touch-action, and logs gestures', async () => {
+    const html = readFileSync(resolve(__dirname, './index.html'), 'utf8');
     const parsed = new DOMParser().parseFromString(html, 'text/html');
     document.head.innerHTML = parsed.head.innerHTML;
     document.body.innerHTML = parsed.body.innerHTML;
@@ -29,6 +29,12 @@ describe('Playground UI & Diagnostics', () => {
     expect(hitarea.style.touchAction).toBe('none');
     expect(arenaStates.textContent).toContain('SingleTap: possible');
     expect(codePreview.textContent).toContain("from '@gestures/core';");
+    expect(codePreview.textContent).toContain("from '@gestures/trackpad';");
+
+    hitarea.dispatchEvent(
+      new WheelEvent('wheel', {bubbles: true, cancelable: true, ctrlKey: true, deltaY: -50})
+    );
+    expect(eventLogCode.textContent).toContain('TrackpadStart');
 
     presetSelect.value = 'carousel';
     presetSelect.dispatchEvent(new Event('change', {bubbles: true}));

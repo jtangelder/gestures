@@ -2,36 +2,11 @@
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {playwright} from '@vitest/browser-playwright';
-import {defineConfig, type Plugin} from 'vite';
+import {defineConfig} from 'vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/**
- * Redirects `/` to `/tests/playground/playground.html` during `vite dev` so opening the
- * root dev-server URL (`http://localhost:5173/`) loads the interactive playground
- * instead of returning a 404.
- */
-function playgroundDevPlugin(): Plugin {
-  return {
-    name: 'gestures-playground-dev',
-    apply: 'serve',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url === '/' || req.url === '/index.html' || req.url?.startsWith('/?')) {
-          const search = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
-          res.statusCode = 302;
-          res.setHeader('Location', `/tests/playground/playground.html${search}`);
-          res.end();
-          return;
-        }
-        next();
-      });
-    },
-  };
-}
-
 export default defineConfig({
-  plugins: [playgroundDevPlugin()],
   build: {
     target: ['chrome60', 'edge79', 'firefox59', 'safari13'],
     minify: false,

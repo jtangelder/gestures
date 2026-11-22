@@ -17,7 +17,8 @@ import {
   TapRecognizer,
   type TouchActionSetting,
   type TouchActionValue,
-} from '../../src/index';
+} from '@gestures/core';
+import {TrackpadScale, type TrackpadScaleEvent} from '@gestures/trackpad';
 
 interface PlaygroundConfig {
   preset: string;
@@ -44,6 +45,7 @@ interface PlaygroundConfig {
   enableScale: boolean;
   enableQuickScale: boolean;
   quickScaleSensitivity: number;
+  enableTrackpadScale: boolean;
   enableRotate: boolean;
   scaleRotateSimultaneous: boolean;
 }
@@ -130,6 +132,7 @@ function createBaseConfig(): PlaygroundConfig {
     enableScale: true,
     enableQuickScale: true,
     quickScaleSensitivity: 200,
+    enableTrackpadScale: true,
     enableRotate: true,
     scaleRotateSimultaneous: true,
   };
@@ -151,6 +154,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.panDirection = 'horizontal';
       next.enableScale = false;
       next.enableQuickScale = false;
+      next.enableTrackpadScale = false;
       next.enableRotate = false;
       next.enableLongPress = false;
       break;
@@ -161,6 +165,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.panDirection = 'vertical';
       next.enableScale = false;
       next.enableQuickScale = false;
+      next.enableTrackpadScale = false;
       next.enableRotate = false;
       next.enableLongPress = false;
       break;
@@ -174,6 +179,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.enableSwipe = false;
       next.enableScale = false;
       next.enableQuickScale = false;
+      next.enableTrackpadScale = false;
       next.enableRotate = false;
       break;
 
@@ -185,6 +191,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.enableSwipe = false;
       next.enableScale = true;
       next.enableQuickScale = true;
+      next.enableTrackpadScale = true;
       next.enableRotate = true;
       next.scaleRotateSimultaneous = true;
       break;
@@ -202,6 +209,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.panSimultaneousScaleRotate = true;
       next.enableScale = true;
       next.enableQuickScale = true;
+      next.enableTrackpadScale = true;
       next.enableRotate = true;
       next.scaleRotateSimultaneous = true;
       break;
@@ -218,6 +226,7 @@ function applyPresetOverrides(preset: string, base: PlaygroundConfig): Playgroun
       next.panPointers = 2;
       next.enableScale = true;
       next.enableQuickScale = false;
+      next.enableTrackpadScale = false;
       next.enableRotate = true;
       break;
 
@@ -243,6 +252,7 @@ function el<T extends Element = HTMLElement>(id: string, ctor?: new () => T): T 
 
 let config: PlaygroundConfig = createBaseConfig();
 let manager: GestureManager | null = null;
+let trackpad: TrackpadScale | null = null;
 let trackedRecognizers: TrackedRecognizer[] = [];
 let statePollTimer: ReturnType<typeof setInterval> | null = null;
 let statePollStopTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -562,7 +572,11 @@ function generateCodePreview(cfg: PlaygroundConfig): string {
   if (cfg.enableQuickScale) imports.push('QuickScaleRecognizer');
   if (cfg.enableRotate) imports.push('RotateRecognizer');
 
-  const lines: string[] = [`import {${imports.join(', ')}} from '@gestures/core';`, ''];
+  const lines: string[] = [`import {${imports.join(', ')}} from '@gestures/core';`];
+  if (cfg.enableTrackpadScale) {
+    lines.push("import {TrackpadScale} from '@gestures/trackpad';");
+  }
+  lines.push('');
   const recognizerVars: string[] = [];
 
   if (cfg.enableDoubleTap) {
@@ -658,6 +672,13 @@ function generateCodePreview(cfg: PlaygroundConfig): string {
   lines.push(`  recognizers: [${recognizerVars.join(', ')}],`);
   lines.push('});');
 
+  if (cfg.enableTrackpadScale) {
+    lines.push('');
+    lines.push('const trackpad = new TrackpadScale(element, {');
+    lines.push("  onScale: ev => console.log('TrackpadScale', ev.scale),");
+    lines.push('});');
+  }
+
   return lines.join('\n');
 }
 
@@ -665,6 +686,10 @@ function rebuildManager(): void {
   if (manager) {
     manager.destroy();
     manager = null;
+  }
+  if (trackpad) {
+    trackpad.destroy();
+    trackpad = null;
   }
   trackedRecognizers = [];
 
@@ -1051,6 +1076,45 @@ function rebuildManager(): void {
     recognizers: trackedRecognizers.map(item => item.recognizer),
   });
 
+  if (config.enableTrackpadScale && config.pointerMouse) {
+    trackpad = new TrackpadScale(hitarea, {
+      onScaleStart: (ev: TrackpadScaleEvent) => {
+        gestureCount++;
+        scaleOrigin = baseScale;
+        const local = localPoint(ev.center);
+        updateCommonTelemetry('TrackpadScaleStart');
+        telPointers.textContent = 'trackpad pinch';
+        telScale.textContent = `${ev.scale.toFixed(2)}× (trackpad)`;
+        appendLog(
+          'lifecycle',
+          'TrackpadStart',
+          `center=(${Math.round(local.x)}, ${Math.round(local.y)})`
+        );
+      },
+      onScale: (ev: TrackpadScaleEvent) => {
+        activeScale = scaleOrigin * ev.scale;
+        updateCardTransform(false);
+        updateCommonTelemetry('TrackpadScale');
+        telScale.textContent = `${ev.scale.toFixed(2)}× (trackpad)`;
+        appendLog(
+          'move',
+          'TrackpadScale',
+          `scale=${ev.scale.toFixed(3)} factor=${ev.scaleFactor.toFixed(3)}`
+        );
+      },
+      onScaleEnd: (ev: TrackpadScaleEvent) => {
+        baseScale = activeScale;
+        updateCommonTelemetry('TrackpadScaleEnd');
+        appendLog('lifecycle', 'TrackpadEnd', `finalScale=${ev.scale.toFixed(3)}`);
+        settleOrPersistTransform();
+      },
+      onScaleCancel: () => {
+        appendLog('lifecycle', 'TrackpadCancel', 'cancelled');
+        settleOrPersistTransform();
+      },
+    });
+  }
+
   const computedAction = manager.computeTouchAction();
   const inlineAction = hitarea.style.touchAction || '(none / CSS default)';
   computedTouchActionEl.textContent = computedAction;
@@ -1090,6 +1154,7 @@ const BOOLEAN_CONFIG_KEYS: readonly BooleanConfigKey[] = [
   'panSimultaneousScaleRotate',
   'enableScale',
   'enableQuickScale',
+  'enableTrackpadScale',
   'enableRotate',
   'scaleRotateSimultaneous',
 ];
@@ -1161,6 +1226,8 @@ function serializeConfigToQuery(cfg: PlaygroundConfig): string {
   if (cfg.enableQuickScale !== def.enableQuickScale)
     params.set('qs', cfg.enableQuickScale ? '1' : '0');
   if (cfg.quickScaleSensitivity !== 200) params.set('qss', String(cfg.quickScaleSensitivity));
+  if (cfg.enableTrackpadScale !== def.enableTrackpadScale)
+    params.set('ts', cfg.enableTrackpadScale ? '1' : '0');
   if (cfg.enableRotate !== def.enableRotate) params.set('rot', cfg.enableRotate ? '1' : '0');
   if (!cfg.scaleRotateSimultaneous) params.set('srsim', '0');
   return params.toString();
@@ -1202,6 +1269,7 @@ function loadConfigFromUrl(): PlaygroundConfig {
   cfg.enableScale = boolParam('sc', cfg.enableScale);
   cfg.enableQuickScale = boolParam('qs', cfg.enableQuickScale);
   if (params.has('qss')) cfg.quickScaleSensitivity = Number(params.get('qss')) || 200;
+  cfg.enableTrackpadScale = boolParam('ts', cfg.enableTrackpadScale);
   cfg.enableRotate = boolParam('rot', cfg.enableRotate);
   cfg.scaleRotateSimultaneous = boolParam('srsim', cfg.scaleRotateSimultaneous);
   return cfg;
@@ -1301,6 +1369,7 @@ function bindStageDiagnostics(): void {
   };
 
   hitarea.addEventListener('pointerdown', (e: PointerEvent) => {
+    trackpad?.cancel();
     if (activePointers.size === 0) {
       streamOriginTime = performance.now();
       peakStrokeSpeed = 0;

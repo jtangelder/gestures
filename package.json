@@ -9,11 +9,12 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "npm -w @gestures/core run dev",
+    "dev": "vite --config playground/vite.config.ts",
     "build": "npm -w @gestures/core run build && npm --workspaces --if-present run build",
-    "build:playground": "npm -w @gestures/core run build:playground",
-    "test": "npm --workspaces --if-present run test",
-    "test:unit": "npm --workspaces --if-present run test:unit",
+    "build:playground": "vite build --config playground/vite.config.ts",
+    "test": "npm --workspaces --if-present run test && npm run test:playground",
+    "test:unit": "npm --workspaces --if-present run test:unit && npm run test:playground",
+    "test:playground": "vitest run --config playground/vite.config.ts",
     "test:browser": "npm -w @gestures/core run test:browser",
     "test:coverage": "npm -w @gestures/core run test:coverage",
     "format": "prettier --write .",
