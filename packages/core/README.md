@@ -1,25 +1,25 @@
-# @hammerjs/core
+# @gestures/core
 
 Modern multi-touch and pointer gesture recognition engine for the web. Zero dependencies, strict TypeScript, tree-shakable ESM.
 
 ## Install
 
 ```bash
-npm install @hammerjs/core
+npm install @gestures/core
 ```
 
-Or drop the classic minified browser build directly into a `<script>` tag (exposes `window.Hammer`, no ES modules required):
+Or drop the classic minified browser build directly into a `<script>` tag (exposes `window.Gestures`, no ES modules required):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hammerjs/core/dist/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gestures/core/dist/gestures.min.js"></script>
 <script>
-  const hammer = new Hammer(document.getElementById('stage'), {
+  const gestures = new Gestures(document.getElementById('stage'), {
     onTap: ev => console.log('Tap', ev.center),
     onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
   });
 
-  // Modular descriptors are also available on window.Hammer:
-  // new Hammer.GestureManager(el, { gestures: [Hammer.tap(...), Hammer.pan(...)] })
+  // Modular descriptors are also available on window.Gestures:
+  // new Gestures.GestureManager(el, { gestures: [Gestures.tap(...), Gestures.pan(...)] })
 </script>
 ```
 
@@ -37,7 +37,7 @@ import {
   rotate,
   scale,
   tap,
-} from '@hammerjs/core';
+} from '@gestures/core';
 
 const manager = new GestureManager(element, {
   gestures: [
@@ -60,14 +60,14 @@ manager.destroy();
 
 Use `swipe({direction: 'horizontal', onSwipe})` when you only need flick detection without continuous pan tracking.
 
-> **Pointer Events only:** `@hammerjs/core` recognizes W3C Pointer Events (`touch`, `pen`, `mouse`) and does not synthesize `scale` events from laptop trackpad `ctrl` + `wheel` or macOS Safari `GestureEvent` zoom.
+> **Pointer Events only:** `@gestures/core` recognizes W3C Pointer Events (`touch`, `pen`, `mouse`) and does not synthesize `scale` events from laptop trackpad `ctrl` + `wheel` or macOS Safari `GestureEvent` zoom.
 
 ### Custom recognizers
 
 Subclass `GestureRecognizer` and wrap it with `gesture(...)` to compose seamlessly alongside built-in descriptors:
 
 ```ts
-import {GestureManager, GestureRecognizer, gesture, tap, type MotionEvent} from '@hammerjs/core';
+import {GestureManager, GestureRecognizer, gesture, tap, type MotionEvent} from '@gestures/core';
 
 class InstantPressRecognizer extends GestureRecognizer {
   constructor(private readonly callbacks: {onPress?: () => void}) {

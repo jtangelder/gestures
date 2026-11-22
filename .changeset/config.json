@@ -3,14 +3,14 @@
   "changelog": [
     "@changesets/changelog-github",
     {
-      "repo": "hammerjs/hammer.js"
+      "repo": "jtangelder/gestures"
     }
   ],
   "commit": false,
-  "fixed": [["@hammerjs/*"]],
+  "fixed": [["@gestures/*"]],
   "linked": [],
   "access": "public",
-  "baseBranch": "3.x",
+  "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": []
 }

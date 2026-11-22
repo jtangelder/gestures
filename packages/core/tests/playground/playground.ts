@@ -87,16 +87,18 @@ const TOUCH_ACTION_DESCRIPTIONS: Record<string, string> = {
   manipulation:
     'Native 2D scrolling + pinch-zoom active; 300ms double-tap zoom delay disabled (100% passive on Tap-only).',
   'pan-y pinch-zoom':
-    'Horizontal gestures handled by Hammer; vertical page scroll & pinch-zoom stay native.',
+    'Horizontal gestures handled by GestureManager; vertical page scroll & pinch-zoom stay native.',
   'pan-x pinch-zoom':
-    'Vertical gestures handled by Hammer; horizontal scroll & pinch-zoom stay native.',
+    'Vertical gestures handled by GestureManager; horizontal scroll & pinch-zoom stay native.',
   'pan-x pan-y':
-    '1-finger scrolling stays native on both axes; 2-finger pinch/rotate claimed by Hammer.',
-  'pan-x': 'Only horizontal native scroll allowed; vertical & zoom claimed by Hammer.',
-  'pan-y': 'Only vertical native scroll allowed; horizontal & zoom claimed by Hammer.',
-  'pinch-zoom': 'Only native 2-finger pinch-zoom allowed; 1-finger panning claimed by Hammer.',
-  none: 'All touch scrolling and zooming disabled on stage; Hammer owns every pointer gesture.',
-  false: 'Hammer leaves element inline touch-action and selection styles completely untouched.',
+    '1-finger scrolling stays native on both axes; 2-finger pinch/rotate claimed by GestureManager.',
+  'pan-x': 'Only horizontal native scroll allowed; vertical & zoom claimed by GestureManager.',
+  'pan-y': 'Only vertical native scroll allowed; horizontal & zoom claimed by GestureManager.',
+  'pinch-zoom':
+    'Only native 2-finger pinch-zoom allowed; 1-finger panning claimed by GestureManager.',
+  none: 'All touch scrolling and zooming disabled on stage; GestureManager owns every pointer gesture.',
+  false:
+    'GestureManager leaves element inline touch-action and selection styles completely untouched.',
 };
 
 const POINTER_PALETTE = ['#0ea5e9', '#f97316', '#10b981', '#a855f7', '#ec4899'];
@@ -240,7 +242,7 @@ function el<T extends Element = HTMLElement>(id: string, ctor?: new () => T): T 
 }
 
 let config: PlaygroundConfig = createBaseConfig();
-let hammer: GestureManager | null = null;
+let manager: GestureManager | null = null;
 let trackedRecognizers: TrackedRecognizer[] = [];
 let statePollTimer: ReturnType<typeof setInterval> | null = null;
 let statePollStopTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -560,7 +562,7 @@ function generateCodePreview(cfg: PlaygroundConfig): string {
   if (cfg.enableQuickScale) imports.push('QuickScaleRecognizer');
   if (cfg.enableRotate) imports.push('RotateRecognizer');
 
-  const lines: string[] = [`import {${imports.join(', ')}} from '@hammerjs/core';`, ''];
+  const lines: string[] = [`import {${imports.join(', ')}} from '@gestures/core';`, ''];
   const recognizerVars: string[] = [];
 
   if (cfg.enableDoubleTap) {
@@ -659,10 +661,10 @@ function generateCodePreview(cfg: PlaygroundConfig): string {
   return lines.join('\n');
 }
 
-function rebuildHammer(): void {
-  if (hammer) {
-    hammer.destroy();
-    hammer = null;
+function rebuildManager(): void {
+  if (manager) {
+    manager.destroy();
+    manager = null;
   }
   trackedRecognizers = [];
 
@@ -1043,13 +1045,13 @@ function rebuildHammer(): void {
     trackedRecognizers.push({label: 'Pan', recognizer: pan});
   }
 
-  hammer = new GestureManager(hitarea, {
+  manager = new GestureManager(hitarea, {
     supportedPointerTypes,
     touchAction: config.touchAction,
     recognizers: trackedRecognizers.map(item => item.recognizer),
   });
 
-  const computedAction = hammer.computeTouchAction();
+  const computedAction = manager.computeTouchAction();
   const inlineAction = hitarea.style.touchAction || '(none / CSS default)';
   computedTouchActionEl.textContent = computedAction;
   appliedTouchActionEl.textContent = inlineAction;
@@ -1387,7 +1389,7 @@ function init(): void {
   renderEnvironmentTable();
   bindStageDiagnostics();
   updateCardTransform(false);
-  rebuildHammer();
+  rebuildManager();
 
   window.addEventListener('resize', renderEnvironmentTable);
 
@@ -1408,7 +1410,7 @@ function init(): void {
     config = applyPresetOverrides(presetSelect.value, config);
     syncFormFromConfig(config);
     resetStageTransform(true);
-    rebuildHammer();
+    rebuildManager();
   });
 
   const configForm = el('configForm', HTMLFormElement);
@@ -1421,7 +1423,7 @@ function init(): void {
     }
     config = readConfigFromForm();
     syncFormFromConfig(config);
-    rebuildHammer();
+    rebuildManager();
   });
 
   el('resetAllBtn').addEventListener('click', () => {
@@ -1433,7 +1435,7 @@ function init(): void {
     }
     syncFormFromConfig(config);
     resetStageTransform(true);
-    rebuildHammer();
+    rebuildManager();
   });
 
   const persistToggle = el('persistTransformToggle', HTMLInputElement);
@@ -1475,7 +1477,7 @@ function init(): void {
       timestamp: new Date().toISOString(),
       environment: collectEnvironmentInfo(),
       appliedTouchAction: hitarea.style.touchAction || '(unset)',
-      computedTouchAction: hammer?.computeTouchAction() ?? '(none)',
+      computedTouchAction: manager?.computeTouchAction() ?? '(none)',
       config,
       recognizerStates: Object.fromEntries(
         trackedRecognizers.map(r => [r.label, r.recognizer.state])

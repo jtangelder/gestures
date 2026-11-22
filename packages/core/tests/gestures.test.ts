@@ -1,8 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {Hammer} from '../src/index';
+import {Gestures} from '../src/index';
 import {pointerEvent} from './test_helpers';
 
-describe('Hammer', () => {
+describe('Gestures', () => {
   let element: HTMLElement;
 
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe('Hammer', () => {
   });
 
   it('registers only requested recognizers and leaves empty instances passive', () => {
-    const empty = new Hammer(element);
+    const empty = new Gestures(element);
     expect(empty.manager.element).toBe(element);
     expect(empty.manager.computeTouchAction()).toBe('auto');
     expect(element.style.touchAction || '').toBe('');
@@ -23,7 +23,7 @@ describe('Hammer', () => {
     empty.destroy();
 
     const onTap = vi.fn();
-    const tapOnly = new Hammer(element, {
+    const tapOnly = new Gestures(element, {
       onTap,
       supportedPointerTypes: ['touch'],
       tap: {slop: 14},
@@ -55,7 +55,7 @@ describe('Hammer', () => {
     try {
       const onTap = vi.fn();
       const onDoubleTap = vi.fn();
-      const hammer = new Hammer(element, {onTap, onDoubleTap});
+      const gestures = new Gestures(element, {onTap, onDoubleTap});
 
       element.dispatchEvent(
         pointerEvent('pointerdown', {pointerId: 1, clientX: 10, clientY: 10, timeStamp: 0})
@@ -83,7 +83,7 @@ describe('Hammer', () => {
       expect(onTap).not.toHaveBeenCalled();
       vi.advanceTimersByTime(305);
       expect(onTap).toHaveBeenCalledTimes(1);
-      hammer.destroy();
+      gestures.destroy();
     } finally {
       vi.useRealTimers();
     }
@@ -91,10 +91,10 @@ describe('Hammer', () => {
 
   it('computes touch-action from pan.direction and dispatches onPan and onSwipe', () => {
     const checkTouchAction = (
-      opts: ConstructorParameters<typeof Hammer>[1],
+      opts: ConstructorParameters<typeof Gestures>[1],
       expected: string
     ): void => {
-      const h = new Hammer(element, opts);
+      const h = new Gestures(element, opts);
       expect(h.manager.computeTouchAction()).toBe(expected);
       h.destroy();
     };
@@ -111,7 +111,7 @@ describe('Hammer', () => {
     const onPanEnd = vi.fn();
     const onSwipe = vi.fn();
 
-    const hammer = new Hammer(element, {
+    const gestures = new Gestures(element, {
       onPanStart,
       onPan,
       onPanEnd,
@@ -145,7 +145,7 @@ describe('Hammer', () => {
     expect(onPan).toHaveBeenCalledTimes(1);
     expect(onPanEnd).toHaveBeenCalledTimes(1);
     expect(onSwipe).toHaveBeenCalledWith(expect.objectContaining({direction: 'left'}));
-    hammer.destroy();
+    gestures.destroy();
   });
 
   it('pairs scale, rotate, and multi-pointer pan simultaneously and forwards quickScale to onScale', () => {
@@ -154,7 +154,7 @@ describe('Hammer', () => {
     const onRotate = vi.fn();
     const onPan = vi.fn();
 
-    const hammer = new Hammer(element, {
+    const gestures = new Gestures(element, {
       onTap,
       onPan,
       onScale,
@@ -219,7 +219,7 @@ describe('Hammer', () => {
 
     expect(onScale).toHaveBeenCalledWith(expect.objectContaining({isQuickScale: true}));
     expect(onTap).not.toHaveBeenCalled();
-    hammer.destroy();
+    gestures.destroy();
   });
 
   it('wires LongPress lifecycle callbacks and respects touchAction: false', () => {
@@ -227,7 +227,7 @@ describe('Hammer', () => {
     try {
       const onLongPressMove = vi.fn();
       const onLongPressUp = vi.fn();
-      const hammer = new Hammer(element, {
+      const gestures = new Gestures(element, {
         touchAction: false,
         onLongPressMove,
         onLongPressUp,
@@ -249,7 +249,7 @@ describe('Hammer', () => {
 
       expect(onLongPressMove).toHaveBeenCalledWith(expect.objectContaining({deltaX: 25}));
       expect(onLongPressUp).toHaveBeenCalledTimes(1);
-      hammer.destroy();
+      gestures.destroy();
     } finally {
       vi.useRealTimers();
     }
@@ -259,7 +259,7 @@ describe('Hammer', () => {
     const onPan = vi.fn();
     const onPanCancel = vi.fn();
     const onScale = vi.fn();
-    const hammer = new Hammer(element, {
+    const gestures = new Gestures(element, {
       onPan,
       onPanCancel,
       onScale,
@@ -342,11 +342,15 @@ describe('Hammer', () => {
       })
     );
     expect(onPanCancel).toHaveBeenCalledTimes(1);
-    hammer.destroy();
+    gestures.destroy();
 
     const onTap = vi.fn();
     const onScaleDisabledQs = vi.fn();
-    const disabledQs = new Hammer(element, {onTap, onScale: onScaleDisabledQs, quickScale: false});
+    const disabledQs = new Gestures(element, {
+      onTap,
+      onScale: onScaleDisabledQs,
+      quickScale: false,
+    });
     element.dispatchEvent(
       pointerEvent('pointerdown', {pointerId: 5, clientX: 10, clientY: 10, timeStamp: 1000})
     );
@@ -363,7 +367,7 @@ describe('Hammer', () => {
     document.body.appendChild(svg);
 
     const calls: string[] = [];
-    const hammer = new Hammer(svg, {
+    const gestures = new Gestures(svg, {
       onTap: () => calls.push('tap'),
       onDoubleTap: () => calls.push('dbl'),
       onLongPress: () => calls.push('lp'),
@@ -374,7 +378,7 @@ describe('Hammer', () => {
       pan: {numPointers: 0, slop: 4},
       scale: {spanSlop: 8, minSpan: 20},
     });
-    expect(hammer.manager.element).toBe(svg);
+    expect(gestures.manager.element).toBe(svg);
 
     svg.dispatchEvent(
       pointerEvent('pointerdown', {pointerId: 1, clientX: 0, clientY: 0, timeStamp: 0})
@@ -407,7 +411,7 @@ describe('Hammer', () => {
     expect(calls).toContain('pan:20');
     expect(calls).toContain('scale:2.0');
 
-    hammer.destroy();
+    gestures.destroy();
     svg.remove();
   });
 
@@ -415,7 +419,7 @@ describe('Hammer', () => {
     const onPan = vi.fn();
     const onPanEnd = vi.fn();
     const onPanCancel = vi.fn();
-    const hammer = new Hammer(element, {
+    const gestures = new Gestures(element, {
       onPan,
       onPanEnd,
       onPanCancel,
@@ -426,7 +430,7 @@ describe('Hammer', () => {
     document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 12, clientY: 0}));
     expect(onPan).toHaveBeenCalledTimes(1);
 
-    hammer.cancel();
+    gestures.cancel();
     expect(onPanCancel).toHaveBeenCalledTimes(1);
 
     document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 30, clientY: 0}));
@@ -434,12 +438,12 @@ describe('Hammer', () => {
     expect(onPan).toHaveBeenCalledTimes(1);
     expect(onPanEnd).not.toHaveBeenCalled();
 
-    hammer.destroy();
+    gestures.destroy();
   });
 
   it('forwards enabled: false and propagate: true to GestureManager', () => {
     const onTap = vi.fn();
-    const disabled = new Hammer(element, {enabled: false, onTap});
+    const disabled = new Gestures(element, {enabled: false, onTap});
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 1, clientX: 5, timeStamp: 0}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 1, clientX: 5, timeStamp: 20}));
     expect(onTap).not.toHaveBeenCalled();
@@ -450,15 +454,15 @@ describe('Hammer', () => {
     element.appendChild(child);
     const onOuterTap = vi.fn();
     const onInnerTap = vi.fn();
-    const outerHammer = new Hammer(element, {propagate: true, onTap: onOuterTap});
-    const innerHammer = new Hammer(child, {onTap: onInnerTap});
+    const outerGestures = new Gestures(element, {propagate: true, onTap: onOuterTap});
+    const innerGestures = new Gestures(child, {onTap: onInnerTap});
 
     child.dispatchEvent(pointerEvent('pointerdown', {pointerId: 2, clientX: 5, timeStamp: 100}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 2, clientX: 5, timeStamp: 120}));
     expect(onInnerTap).toHaveBeenCalledTimes(1);
     expect(onOuterTap).toHaveBeenCalledTimes(1);
 
-    innerHammer.destroy();
-    outerHammer.destroy();
+    innerGestures.destroy();
+    outerGestures.destroy();
   });
 });

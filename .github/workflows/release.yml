@@ -4,7 +4,7 @@ name: Release
 on:
   workflow_dispatch:
   # push:
-  #   branches: ['3.x']
+  #   branches: ['main']
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 

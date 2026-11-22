@@ -1,4 +1,4 @@
-import {doubleTap, longPress, pan, swipe, tap} from '@hammerjs/core';
+import {doubleTap, longPress, pan, swipe, tap} from '@gestures/core';
 import {act, cleanup, render} from '@testing-library/react';
 import {StrictMode, createElement, useState, type RefCallback} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -27,7 +27,7 @@ function pointerEvent(type: string, init: MockPointerInit = {}): PointerEvent {
   return ev;
 }
 
-describe('@hammerjs/react useGestures', () => {
+describe('@gestures/react useGestures', () => {
   afterEach(cleanup);
 
   it('attaches via callback ref, handles gestures, keeps stable ref identity, and cleans up on unmount', () => {

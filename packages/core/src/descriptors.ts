@@ -33,7 +33,7 @@ export interface GestureDescriptor {
 
 export interface ResolveGesturesOptions {
   /**
-   * Automatically wires standard gesture relationships matching `Hammer` defaults:
+   * Automatically wires standard gesture relationships matching `Gestures` defaults:
    * - Single `tap` waits on multi-tap (`taps > 1`) with matching `numPointers` and 1-finger `quickScale`.
    * - `scale` and `rotate` recognize simultaneously.
    * - Multi-pointer `pan` (`numPointers !== 1`) recognizes simultaneously with `scale` and `rotate`.

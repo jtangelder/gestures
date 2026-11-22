@@ -1,18 +1,18 @@
-# @hammerjs/react
+# @gestures/react
 
-Tree-shakable React hook for [`@hammerjs/core`](../core/README.md).
+Tree-shakable React hook for [`@gestures/core`](../core/README.md).
 
 ## Install
 
 ```bash
-npm install @hammerjs/core @hammerjs/react
+npm install @gestures/core @gestures/react
 ```
 
 ## Usage
 
 ```tsx
-import {doubleTap, pan, tap} from '@hammerjs/core';
-import {useGestures} from '@hammerjs/react';
+import {doubleTap, pan, tap} from '@gestures/core';
+import {useGestures} from '@gestures/react';
 import {useState} from 'react';
 
 export function DraggableCard({enabled = true}: {enabled?: boolean}) {
@@ -39,4 +39,4 @@ export function DraggableCard({enabled = true}: {enabled?: boolean}) {
 ```
 
 - Inline callbacks do **not** require `useCallback` or `useMemo` — updating React state mid-drag never cancels an active gesture.
-- Only the gesture factories you import from `@hammerjs/core` are bundled.
+- Only the gesture factories you import from `@gestures/core` are bundled.

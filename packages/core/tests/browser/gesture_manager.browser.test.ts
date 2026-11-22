@@ -3,7 +3,7 @@ import {cdp} from 'vitest/browser';
 import {
   GestureBinding,
   GestureManager,
-  Hammer,
+  Gestures,
   pan,
   PanRecognizer,
   ScaleRecognizer,
@@ -140,7 +140,7 @@ async function touchFlick(
 describe('GestureManager in a real browser (Chromium)', () => {
   let surface: HTMLElement;
   let manager: GestureManager | null = null;
-  let hammer: Hammer | null = null;
+  let gestures: Gestures | null = null;
 
   beforeEach(() => {
     document.body.style.margin = '0';
@@ -155,8 +155,8 @@ describe('GestureManager in a real browser (Chromium)', () => {
   afterEach(() => {
     manager?.destroy();
     manager = null;
-    hammer?.destroy();
-    hammer = null;
+    gestures?.destroy();
+    gestures = null;
     document.body.innerHTML = '';
   });
 
@@ -305,12 +305,12 @@ describe('GestureManager in a real browser (Chromium)', () => {
     expect(onOuterClick).not.toHaveBeenCalled();
   });
 
-  it('recognizes simultaneous 2-finger Scale, Rotate, and Pan via Hammer', async () => {
+  it('recognizes simultaneous 2-finger Scale, Rotate, and Pan via Gestures', async () => {
     const scales: ScaleEventData[] = [];
     const rotations: RotateEventData[] = [];
     const onPan = vi.fn();
 
-    hammer = new Hammer(surface, {
+    gestures = new Gestures(surface, {
       onScale: ev => scales.push(ev),
       onRotate: ev => rotations.push(ev),
       onPan,
@@ -353,7 +353,7 @@ describe('GestureManager in a real browser (Chromium)', () => {
     const scales: ScaleEventData[] = [];
     const onTap = vi.fn();
 
-    hammer = new Hammer(surface, {
+    gestures = new Gestures(surface, {
       onTap,
       onScale: ev => scales.push(ev),
       quickScale: {sensitivity: 100},

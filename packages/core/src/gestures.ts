@@ -13,7 +13,7 @@ import {scale, type ScaleCallbacks, type ScaleOptions} from './recognizers/scale
 import {doubleTap, tap, type TapOptions} from './recognizers/tap_recognizer.js';
 import type {GestureTargetElement} from './touch_action.js';
 
-export interface HammerOptions
+export interface GesturesConfig
   extends
     Pick<
       GestureManagerOptions,
@@ -39,7 +39,7 @@ export interface HammerOptions
   rotate?: Partial<RotateOptions>;
 }
 
-function buildGestures(options: HammerOptions): GestureDescriptor[] {
+function buildGestures(options: GesturesConfig): GestureDescriptor[] {
   const gestures: GestureDescriptor[] = [];
 
   if (options.onTap) {
@@ -132,14 +132,14 @@ function buildGestures(options: HammerOptions): GestureDescriptor[] {
  * Batteries-included convenience wrapper around `GestureManager` that configures recognizers,
  * arena relationships, and `touch-action` defaults from a single options object.
  *
- * Note: importing `Hammer` bundles all built-in recognizers. For minimal tree-shaken bundles,
+ * Note: importing `Gestures` bundles all built-in recognizers. For minimal tree-shaken bundles,
  * import `GestureManager` (or a framework `useGestures` adapter) with only the descriptor
  * factories (`tap`, `pan`, `scale`, ...) you need.
  */
-export class Hammer<T extends GestureTargetElement = GestureTargetElement> {
+export class Gestures<T extends GestureTargetElement = GestureTargetElement> {
   readonly manager: GestureManager<T>;
 
-  constructor(element: T, options: HammerOptions = {}) {
+  constructor(element: T, options: GesturesConfig = {}) {
     this.manager = new GestureManager(element, {
       enabled: options.enabled,
       supportedPointerTypes: options.supportedPointerTypes,

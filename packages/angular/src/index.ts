@@ -7,7 +7,7 @@ import {
   type GestureManager,
   type GesturesOptions,
   type GestureTargetElement,
-} from '@hammerjs/core';
+} from '@gestures/core';
 
 export type {GestureDescriptor, GesturesOptions, GestureTargetElement};
 

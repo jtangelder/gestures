@@ -1,17 +1,17 @@
-# Hammer.js v3 (Experimental)
+# Gestures
 
-> **Note:** This branch is an active experiment exploring what a modern Hammer.js could look like today. APIs are evolving and not yet ready for production use.
+> **Note:** Active early development (`0.1.0-alpha.0`). APIs are evolving.
 >
-> **Try the live playground:** https://hammerjs.github.io/hammer.js/3.x/
+> **Try the live playground:** https://jtangelder.github.io/gestures/
 
-Hammer.js 2.x was built for a different era of the web. This experiment rethinks it from scratch around:
+A modern multi-touch and pointer gesture recognition library for the web, built from scratch around:
 
 - **W3C Pointer Events** instead of legacy mouse/touch juggling
 - **Android-inspired gesture physics & arbitration** (`MotionEvent`, polynomial `VelocityTracker`, and an order-independent `GestureArena`)
 - **Tree-shakable gesture descriptors** (`tap`, `doubleTap`, `longPress`, `pan`, `swipe`, `scale`, `quickScale`, `rotate`, `gesture`) so you only ship the recognizers you import
 - **One-finger Quick Scale** (`quickScale`) for double-tap-and-drag zooming alongside two-finger pinch
 - **Web-native scrolling & coexistence** via computed CSS `touch-action`, lazy pointer capture, ghost-click suppression, and automatic nested surface coordination
-- **Tiny framework adapters** (`@hammerjs/react`, `@hammerjs/angular`) that hot-swap inline callbacks without cancelling active gestures
+- **Tiny framework adapters** (`@gestures/react`, `@gestures/angular`) that hot-swap inline callbacks without cancelling active gestures
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ Hammer.js 2.x was built for a different era of the web. This experiment rethinks
 Import only the gesture factories you need. Standard relationships (e.g. `tap` waiting on `doubleTap`/`quickScale`, `scale` simultaneous with `rotate`) are auto-wired by default:
 
 ```ts
-import {GestureManager, doubleTap, pan, rotate, scale, tap} from '@hammerjs/core';
+import {GestureManager, doubleTap, pan, rotate, scale, tap} from '@gestures/core';
 
 const manager = new GestureManager(element, {
   gestures: [
@@ -49,7 +49,7 @@ For swipe-only surfaces (without continuous pan tracking), use `swipe({direction
 - Nested `GestureManager` surfaces coordinate automatically: when an inner surface claims a gesture, competing ancestor surfaces in the same pointer stream are cancelled (pass `propagate: true` to observe simultaneously without cancelling).
 
 ```ts
-import {GestureManager, longPress, pan} from '@hammerjs/core';
+import {GestureManager, longPress, pan} from '@gestures/core';
 
 const hold = longPress({duration: 400, onLongPress: ev => console.log('Hold', ev.center)});
 const drag = pan({onPan: ev => console.log('Drag', ev.deltaX, ev.deltaY)}).requireFailureOf(hold);
@@ -60,14 +60,14 @@ const manager = new GestureManager(element, {
 });
 ```
 
-### Batteries-included `Hammer` wrapper
+### Batteries-included `Gestures` wrapper
 
-For quick prototypes where tree-shaking isn’t needed, `Hammer` configures all built-in gestures from a single options object:
+For quick prototypes where tree-shaking isn’t needed, `Gestures` configures all built-in gestures from a single options object:
 
 ```ts
-import {Hammer} from '@hammerjs/core';
+import {Gestures} from '@gestures/core';
 
-const hammer = new Hammer(element, {
+const gestures = new Gestures(element, {
   onTap: ev => console.log('Tap', ev.center),
   onLongPress: ev => console.log('Hold', ev.center),
   onPan: ev => console.log('Pan', ev.deltaX, ev.deltaY),
@@ -77,17 +77,17 @@ const hammer = new Hammer(element, {
   quickScale: true, // Double-tap and drag vertically to zoom with one finger
 });
 
-hammer.destroy();
+gestures.destroy();
 ```
 
-### Classic `<script>` Drop-in (`window.Hammer`)
+### Classic `<script>` Drop-in (`window.Gestures`)
 
-Prefer no bundler or ES modules? Load `dist/hammer.min.js` directly — it exposes `window.Hammer` (plus `Hammer.GestureManager`, `Hammer.tap`, `Hammer.pan`, etc.) as a compact, minified IIFE build:
+Prefer no bundler or ES modules? Load `dist/gestures.min.js` directly — it exposes `window.Gestures` (plus `Gestures.GestureManager`, `Gestures.tap`, `Gestures.pan`, etc.) as a compact, minified IIFE build:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hammerjs/core/dist/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gestures/core/dist/gestures.min.js"></script>
 <script>
-  const hammer = new Hammer(element, {
+  const gestures = new Gestures(element, {
     onTap: ev => console.log('Tap', ev.center),
     onSwipe: ev => console.log('Swipe', ev.direction),
   });
@@ -99,9 +99,9 @@ Prefer no bundler or ES modules? Load `dist/hammer.min.js` directly — it expos
 All framework adapters wrap `GestureBinding` — inline callbacks never cancel active drags on re-render, and only imported gesture descriptors end up in your bundle.
 
 ```tsx
-// React (@hammerjs/react)
-import {pan, tap} from '@hammerjs/core';
-import {useGestures} from '@hammerjs/react';
+// React (@gestures/react)
+import {pan, tap} from '@gestures/core';
+import {useGestures} from '@gestures/react';
 
 function Card({enabled = true}: {enabled?: boolean}) {
   const ref = useGestures<HTMLDivElement>(
@@ -119,13 +119,13 @@ function Card({enabled = true}: {enabled?: boolean}) {
 
 All packages are versioned in lockstep:
 
-- [`@hammerjs/core`](packages/core/README.md) — Core pointer/gesture engine, descriptors, and built-in recognizers
-- [`@hammerjs/react`](packages/react/README.md) — React `useGestures` hook
-- [`@hammerjs/angular`](packages/angular/README.md) — Standalone Angular `[gestures]` directive (zone-aware)
+- [`@gestures/core`](packages/core/README.md) — Core pointer/gesture engine, descriptors, and built-in recognizers
+- [`@gestures/react`](packages/react/README.md) — React `useGestures` hook
+- [`@gestures/angular`](packages/angular/README.md) — Standalone Angular `[gestures]` directive (zone-aware)
 
 ## Browser Support & Scope
 
-`@hammerjs/core` is **Pointer Events only** — it relies on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action) rather than legacy `TouchEvent`/`MouseEvent` recognizers. Note that laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`) does not emit multi-touch Pointer Events and is intentionally outside the scope of `@hammerjs/core`.
+`@gestures/core` is **Pointer Events only** — it relies on [W3C Pointer Events](https://caniuse.com/pointer) and [CSS `touch-action`](https://caniuse.com/css-touch-action) rather than legacy `TouchEvent`/`MouseEvent` recognizers. Note that laptop trackpad pinch-to-zoom (`ctrl` + `wheel` / macOS Safari `GestureEvent`) does not emit multi-touch Pointer Events and is intentionally outside the scope of `@gestures/core`.
 
 | Browser     | Minimum Version | Released | Platform Notes                                             |
 | :---------- | :-------------- | :------- | :--------------------------------------------------------- |

@@ -15,7 +15,7 @@ export default defineConfig({
       fileName: () => 'index.es.js',
     },
     rolldownOptions: {
-      external: ['@hammerjs/core', 'react'],
+      external: ['@gestures/core', 'react'],
     },
   },
   test: {

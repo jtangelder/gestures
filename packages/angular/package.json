@@ -1,18 +1,17 @@
 {
-  "name": "@hammerjs/angular",
-  "version": "3.0.0-alpha.0",
-  "description": "Angular adapter for @hammerjs/core gesture recognition",
+  "name": "@gestures/angular",
+  "version": "0.1.0-alpha.0",
+  "description": "Angular adapter for @gestures/core gesture recognition",
   "license": "MIT",
   "author": "Jorik Tangelder",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hammerjs/hammer.js.git",
+    "url": "git+https://github.com/jtangelder/gestures.git",
     "directory": "packages/angular"
   },
   "keywords": [
-    "hammerjs",
-    "angular",
     "gestures",
+    "angular",
     "touch",
     "pointer-events"
   ],
@@ -31,7 +30,7 @@
   },
   "peerDependencies": {
     "@angular/core": ">=17.0.0",
-    "@hammerjs/core": "^3.0.0-alpha.0"
+    "@gestures/core": "^0.1.0-alpha.0"
   },
   "devDependencies": {
     "@angular/compiler": "^21.0.0",

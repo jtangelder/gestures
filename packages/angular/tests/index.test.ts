@@ -2,7 +2,7 @@ import '@angular/compiler';
 import {ElementRef, NgZone, signal} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {BrowserTestingModule, platformBrowserTesting} from '@angular/platform-browser/testing';
-import {pan, tap} from '@hammerjs/core';
+import {pan, tap} from '@gestures/core';
 import {afterEach, beforeAll, describe, expect, it, vi} from 'vitest';
 import {GesturesDirective, type GestureDescriptor, type GesturesOptions} from '../src/index.js';
 
@@ -29,7 +29,7 @@ function pointerEvent(type: string, init: MockPointerInit = {}): PointerEvent {
   return ev;
 }
 
-describe('@hammerjs/angular GesturesDirective', () => {
+describe('@gestures/angular GesturesDirective', () => {
   const elements: Array<HTMLElement | SVGElement> = [];
 
   beforeAll(() => {

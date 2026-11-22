@@ -12,9 +12,9 @@ export default defineConfig({
     sourcemap: true,
     lib: {
       entry: resolve(__dirname, 'src/global.ts'),
-      name: 'Hammer',
+      name: 'Gestures',
       formats: ['iife'],
-      fileName: () => 'hammer.min.js',
+      fileName: () => 'gestures.min.js',
     },
     rolldownOptions: {
       transform: {

@@ -1,19 +1,19 @@
-# @hammerjs/angular
+# @gestures/angular
 
-Tree-shakable standalone Angular directive (`[gestures]`) for [`@hammerjs/core`](../core/README.md). Runs DOM pointer listeners outside `NgZone` and re-enters only when a gesture callback fires.
+Tree-shakable standalone Angular directive (`[gestures]`) for [`@gestures/core`](../core/README.md). Runs DOM pointer listeners outside `NgZone` and re-enters only when a gesture callback fires.
 
 ## Install
 
 ```bash
-npm install @hammerjs/core @hammerjs/angular
+npm install @gestures/core @gestures/angular
 ```
 
 ## Usage
 
 ```ts
 import {Component, signal} from '@angular/core';
-import {pan, tap} from '@hammerjs/core';
-import {GesturesDirective} from '@hammerjs/angular';
+import {pan, tap} from '@gestures/core';
+import {GesturesDirective} from '@gestures/angular';
 
 @Component({
   selector: 'app-draggable-card',

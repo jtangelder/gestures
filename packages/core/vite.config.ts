@@ -13,7 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 function playgroundDevPlugin(): Plugin {
   return {
-    name: 'hammer-playground-dev',
+    name: 'gestures-playground-dev',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -39,7 +39,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: () => 'hammer.es.js',
+      fileName: () => 'gestures.es.js',
     },
     rolldownOptions: {
       transform: {

@@ -3,7 +3,7 @@ import {
   type GestureDescriptor,
   type GesturesOptions,
   type GestureTargetElement,
-} from '@hammerjs/core';
+} from '@gestures/core';
 import {useEffect, useRef, useState, type RefCallback} from 'react';
 
 export type {GestureDescriptor, GesturesOptions, GestureTargetElement};

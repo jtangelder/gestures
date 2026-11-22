@@ -1,12 +1,12 @@
 {
-  "name": "@hammerjs/core",
-  "version": "3.0.0-alpha.0",
+  "name": "@gestures/core",
+  "version": "0.1.0-alpha.0",
   "description": "Modern multi-touch and pointer gesture recognition library for the web",
   "license": "MIT",
   "author": "Jorik Tangelder",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hammerjs/hammer.js.git",
+    "url": "git+https://github.com/jtangelder/gestures.git",
     "directory": "packages/core"
   },
   "keywords": [
@@ -45,12 +45,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "default": "./dist/hammer.es.js"
+      "default": "./dist/gestures.es.js"
     }
   },
   "types": "./dist/types/index.d.ts",
-  "unpkg": "./dist/hammer.min.js",
-  "jsdelivr": "./dist/hammer.min.js",
+  "unpkg": "./dist/gestures.min.js",
+  "jsdelivr": "./dist/gestures.min.js",
   "files": [
     "dist"
   ]

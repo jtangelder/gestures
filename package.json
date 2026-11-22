@@ -1,5 +1,5 @@
 {
-  "name": "hammerjs-monorepo",
+  "name": "gestures-monorepo",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -9,13 +9,13 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "npm -w @hammerjs/core run dev",
-    "build": "npm -w @hammerjs/core run build && npm --workspaces --if-present run build",
-    "build:playground": "npm -w @hammerjs/core run build:playground",
+    "dev": "npm -w @gestures/core run dev",
+    "build": "npm -w @gestures/core run build && npm --workspaces --if-present run build",
+    "build:playground": "npm -w @gestures/core run build:playground",
     "test": "npm --workspaces --if-present run test",
     "test:unit": "npm --workspaces --if-present run test:unit",
-    "test:browser": "npm -w @hammerjs/core run test:browser",
-    "test:coverage": "npm -w @hammerjs/core run test:coverage",
+    "test:browser": "npm -w @gestures/core run test:browser",
+    "test:coverage": "npm -w @gestures/core run test:coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "gts lint",

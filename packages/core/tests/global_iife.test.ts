@@ -1,14 +1,14 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
-import type HammerGlobal from '../src/global';
+import type GesturesGlobal from '../src/global';
 import {pointerEvent} from './test_helpers';
 
-const bundlePath = resolve(__dirname, '../dist/hammer.min.js');
+const bundlePath = resolve(__dirname, '../dist/gestures.min.js');
 
-describe('Classic browser drop-in bundle (dist/hammer.min.js)', () => {
+describe('Classic browser drop-in bundle (dist/gestures.min.js)', () => {
   let code: string;
-  let HammerCtor: typeof HammerGlobal;
+  let GesturesCtor: typeof GesturesGlobal;
 
   beforeAll(() => {
     code = readFileSync(bundlePath, 'utf8');
@@ -17,7 +17,7 @@ describe('Classic browser drop-in bundle (dist/hammer.min.js)', () => {
     script.textContent = code;
     document.head.appendChild(script);
     script.remove();
-    HammerCtor = window.Hammer!;
+    GesturesCtor = window.Gestures!;
   });
 
   beforeEach(() => {
@@ -28,24 +28,24 @@ describe('Classic browser drop-in bundle (dist/hammer.min.js)', () => {
     vi.useRealTimers();
   });
 
-  it('emits classic IIFE output without ESM syntax and exposes window.Hammer', () => {
+  it('emits classic IIFE output without ESM syntax and exposes window.Gestures', () => {
     expect(code).not.toMatch(/\bexport\s+/);
     expect(code).not.toMatch(/\bimport\s+/);
 
-    expect(typeof HammerCtor).toBe('function');
-    expect(HammerCtor.Hammer).toBe(HammerCtor);
-    expect(typeof HammerCtor.GestureManager).toBe('function');
-    expect('GestureBinding' in HammerCtor).toBe(false);
-    expect(typeof HammerCtor.gesture).toBe('function');
-    expect(typeof HammerCtor.GestureRecognizer).toBe('function');
-    expect(typeof HammerCtor.tap).toBe('function');
-    expect(typeof HammerCtor.doubleTap).toBe('function');
-    expect(typeof HammerCtor.longPress).toBe('function');
-    expect(typeof HammerCtor.pan).toBe('function');
-    expect(typeof HammerCtor.swipe).toBe('function');
-    expect(typeof HammerCtor.scale).toBe('function');
-    expect(typeof HammerCtor.quickScale).toBe('function');
-    expect(typeof HammerCtor.rotate).toBe('function');
+    expect(typeof GesturesCtor).toBe('function');
+    expect(GesturesCtor.Gestures).toBe(GesturesCtor);
+    expect(typeof GesturesCtor.GestureManager).toBe('function');
+    expect('GestureBinding' in GesturesCtor).toBe(false);
+    expect(typeof GesturesCtor.gesture).toBe('function');
+    expect(typeof GesturesCtor.GestureRecognizer).toBe('function');
+    expect(typeof GesturesCtor.tap).toBe('function');
+    expect(typeof GesturesCtor.doubleTap).toBe('function');
+    expect(typeof GesturesCtor.longPress).toBe('function');
+    expect(typeof GesturesCtor.pan).toBe('function');
+    expect(typeof GesturesCtor.swipe).toBe('function');
+    expect(typeof GesturesCtor.scale).toBe('function');
+    expect(typeof GesturesCtor.quickScale).toBe('function');
+    expect(typeof GesturesCtor.rotate).toBe('function');
   });
 
   it('recognizes tap, doubleTap, longPress, pan, swipe, scale, rotate, and quickScale', () => {
@@ -60,7 +60,7 @@ describe('Classic browser drop-in bundle (dist/hammer.min.js)', () => {
     const onScale = vi.fn();
     const onRotate = vi.fn();
 
-    const hammer = new HammerCtor(el, {
+    const gestures = new GesturesCtor(el, {
       onTap,
       onDoubleTap,
       onLongPress,
@@ -156,18 +156,18 @@ describe('Classic browser drop-in bundle (dist/hammer.min.js)', () => {
     expect(Math.abs(onRotate.mock.calls.at(-1)![0].rotation)).toBeGreaterThan(5);
 
     // 6. Destroy cleans up touch-action
-    hammer.destroy();
+    gestures.destroy();
     expect(el.style.touchAction).toBe('');
     el.remove();
   });
 
-  it('supports modular Hammer.GestureManager + descriptors on window.Hammer', () => {
+  it('supports modular Gestures.GestureManager + descriptors on window.Gestures', () => {
     const el = document.createElement('div');
     document.body.appendChild(el);
 
     const onSwipe = vi.fn();
-    const gm = new HammerCtor.GestureManager(el, {
-      gestures: [HammerCtor.swipe({direction: 'horizontal', onSwipe})],
+    const gm = new GesturesCtor.GestureManager(el, {
+      gestures: [GesturesCtor.swipe({direction: 'horizontal', onSwipe})],
     });
 
     expect(el.style.touchAction).toBe('pan-y pinch-zoom');

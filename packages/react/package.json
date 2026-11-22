@@ -1,18 +1,17 @@
 {
-  "name": "@hammerjs/react",
-  "version": "3.0.0-alpha.0",
-  "description": "React adapter for @hammerjs/core gesture recognition",
+  "name": "@gestures/react",
+  "version": "0.1.0-alpha.0",
+  "description": "React adapter for @gestures/core gesture recognition",
   "license": "MIT",
   "author": "Jorik Tangelder",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hammerjs/hammer.js.git",
+    "url": "git+https://github.com/jtangelder/gestures.git",
     "directory": "packages/react"
   },
   "keywords": [
-    "hammerjs",
-    "react",
     "gestures",
+    "react",
     "touch",
     "pointer-events"
   ],
@@ -30,7 +29,7 @@
     "test:unit": "vitest run"
   },
   "peerDependencies": {
-    "@hammerjs/core": "^3.0.0-alpha.0",
+    "@gestures/core": "^0.1.0-alpha.0",
     "react": ">=18.0.0"
   },
   "devDependencies": {

@@ -1,9 +1,9 @@
 /**
- * Tree-shakable ESM public entry point for `@hammerjs/core` (`dist/hammer.es.js`).
- * For the classic non-ESM `window.Hammer` bundle (`dist/hammer.min.js`), see `src/global.ts`.
+ * Tree-shakable ESM public entry point for `@gestures/core` (`dist/gestures.es.js`).
+ * For the classic non-ESM `window.Gestures` bundle (`dist/gestures.min.js`), see `src/global.ts`.
  */
 
-export {Hammer, type HammerOptions} from './hammer.js';
+export {Gestures, type GesturesConfig} from './gestures.js';
 export {GestureManager, type GestureManagerOptions, type PointerType} from './gesture_manager.js';
 export {
   GestureBinding,
