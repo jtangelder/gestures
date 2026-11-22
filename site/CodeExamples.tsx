@@ -64,38 +64,6 @@ export function DraggableCard({enabled = true}: {enabled?: boolean}) {
 }`,
   },
   {
-    id: 'angular',
-    label: 'Angular',
-    install: 'npm install @gestures/core @gestures/angular',
-    code: `import {Component, signal} from '@angular/core';
-import {pan, tap} from '@gestures/core';
-import {GesturesDirective} from '@gestures/angular';
-
-@Component({
-  selector: 'app-draggable-card',
-  standalone: true,
-  imports: [GesturesDirective],
-  template: \`
-    <div
-      [gestures]="gestures"
-      [gesturesOptions]="{enabled: enabled()}"
-      [style.transform]="'translate3d(' + x() + 'px, 0, 0)'"
-    >
-      Drag horizontally or tap to reset
-    </div>
-  \`,
-})
-export class DraggableCardComponent {
-  readonly x = signal(0);
-  readonly enabled = signal(true);
-
-  readonly gestures = [
-    tap({onTap: () => this.x.set(0)}),
-    pan({direction: 'horizontal', onPan: ev => this.x.update(v => v + ev.stepX)}),
-  ];
-}`,
-  },
-  {
     id: 'trackpad',
     label: 'Trackpad',
     install: 'npm install @gestures/trackpad',
@@ -150,12 +118,27 @@ function HighlightedCode({code}: {code: string}) {
   );
 }
 
+const SCROLL_EDGE_EPS = 1;
+
+function getCodeBlock(target: EventTarget | null): HTMLElement | null {
+  return target instanceof Element ? target.closest<HTMLElement>('.code-block') : null;
+}
+
+function canScrollLeft(el: HTMLElement): boolean {
+  return el.scrollLeft > SCROLL_EDGE_EPS;
+}
+
+function canScrollRight(el: HTMLElement): boolean {
+  return el.scrollLeft + el.clientWidth < el.scrollWidth - SCROLL_EDGE_EPS;
+}
+
 export function CodeExamples() {
   const baseId = useId();
   const [active, setActive] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const panelRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const swipePreRef = useRef<HTMLElement | null>(null);
 
   // Sync selection when browser find-in-page matches text inside a `hidden="until-found"` panel
   useEffect(() => {
@@ -176,15 +159,20 @@ export function CodeExamples() {
     btn?.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
   };
 
-  // Touch/pen swipe between tabs while letting horizontally overflowing code blocks scroll natively
+  // Touch/pen swipe between tabs once an overflowing code block reaches its horizontal scroll edge
   const panelsSwipeRef = useGestures<HTMLDivElement>(
     [
       swipe({
         direction: 'horizontal',
         onSwipe: ev => {
-          if (ev.direction === 'left' && active < EXAMPLES.length - 1) {
+          const pre = swipePreRef.current;
+          if (
+            ev.direction === 'left' &&
+            (!pre || !canScrollRight(pre)) &&
+            active < EXAMPLES.length - 1
+          ) {
             selectTab(active + 1);
-          } else if (ev.direction === 'right' && active > 0) {
+          } else if (ev.direction === 'right' && (!pre || !canScrollLeft(pre)) && active > 0) {
             selectTab(active - 1);
           }
         },
@@ -194,8 +182,9 @@ export function CodeExamples() {
       supportedPointerTypes: ['touch', 'pen'],
       touchAction: false,
       ignoreTarget: target => {
-        const pre = target instanceof Element ? target.closest('.code-block') : null;
-        return pre !== null && pre.scrollWidth > pre.clientWidth;
+        const pre = getCodeBlock(target);
+        swipePreRef.current = pre;
+        return pre !== null && canScrollLeft(pre) && canScrollRight(pre);
       },
     }
   );

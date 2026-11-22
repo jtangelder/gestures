@@ -3,7 +3,6 @@ import {resolveGestures} from '../src/descriptors';
 import {
   doubleTap,
   gesture,
-  GestureBinding,
   Gestures,
   GestureRecognizer,
   longPress,
@@ -16,7 +15,7 @@ import {
 } from '../src/index';
 import {pointerEvent} from './test_helpers';
 
-describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
+describe('Gesture descriptors and resolveGestures', () => {
   let element: HTMLElement;
 
   beforeEach(() => {
@@ -211,216 +210,28 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     }
 
     const calls: string[] = [];
-    let label = 'v1';
-    const makeGestures = (tag: string) => {
-      const custom = gesture(
-        cbs => new InstantPressRecognizer(cbs, tag),
-        {onPress: t => calls.push(`${t}:${label}`)},
-        {tag}
-      );
-      const t = tap({onTap: () => calls.push(`tap:${label}`)}).simultaneousWith(custom);
-      return [custom, t];
-    };
+    const custom = gesture(
+      cbs => new InstantPressRecognizer(cbs, 'a'),
+      {onPress: t => calls.push(`press:${t}`)},
+      {tag: 'a'}
+    );
+    const t = tap({onTap: () => calls.push('tap')}).simultaneousWith(custom);
 
-    const binding = new GestureBinding(element, makeGestures('a'));
+    const gm = new Gestures(element, [custom, t]);
     element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 1, clientX: 10, timeStamp: 0}));
     document.dispatchEvent(pointerEvent('pointerup', {pointerId: 1, clientX: 10, timeStamp: 20}));
-    expect(calls).toEqual(['a:v1', 'tap:v1']);
+    expect(calls).toEqual(['press:a', 'tap']);
+    gm.destroy();
 
-    // Callback-only update hot-swaps closure without recreating recognizer:
-    const mgrBefore = binding.instance;
-    label = 'v2';
-    binding.update(makeGestures('a'));
-    expect(binding.instance).toBe(mgrBefore);
-
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 2, clientX: 10, timeStamp: 100}));
-    document.dispatchEvent(pointerEvent('pointerup', {pointerId: 2, clientX: 10, timeStamp: 120}));
-    expect(calls).toEqual(['a:v1', 'tap:v1', 'a:v2', 'tap:v2']);
-
-    // Structural config change recreates recognizer cleanly:
-    binding.update(makeGestures('b'));
-    expect(binding.instance).not.toBe(mgrBefore);
-
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 3, clientX: 10, timeStamp: 200}));
-    document.dispatchEvent(pointerEvent('pointerup', {pointerId: 3, clientX: 10, timeStamp: 220}));
-    expect(calls).toEqual(['a:v1', 'tap:v1', 'a:v2', 'tap:v2', 'b:v2', 'tap:v2']);
-
-    binding.destroy();
-  });
-
-  it('GestureBinding preserves active gestures across callback/relationship re-renders and recreates on structural changes', () => {
-    const onPanCancel = vi.fn();
-    const onPanEnd = vi.fn();
-    const seen: Array<{step: number; deltaX: number}> = [];
-    const wrappedCalls = vi.fn();
-
-    let step = 0;
-    const makeList = (slop: number, includeSwipe = false) => {
-      const current = step;
-      const hold = longPress({duration: 500, slop: 4, onLongPress: () => {}});
-      const drag = pan({
-        slop,
-        onPan: ev => {
-          seen.push({step: current, deltaX: ev.deltaX});
-          step++;
-          binding.update(makeList(slop, includeSwipe), {wrapCallback});
-        },
-        onPanEnd,
-        onPanCancel,
-        ...(includeSwipe ? {onSwipe: () => {}} : {}),
-      }).requireFailureOf(hold);
-      return [hold, drag];
-    };
-
-    const wrapCallback = <F extends (...args: never[]) => unknown>(fn: F): F =>
-      ((...args: never[]) => {
-        wrappedCalls();
-        return fn(...args);
-      }) as F;
-
-    const binding = new GestureBinding(element, makeList(4), {wrapCallback});
-    const initialManager = binding.instance;
-
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 1, clientX: 0, timeStamp: 0}));
-    document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 24, timeStamp: 16}));
-    document.dispatchEvent(pointerEvent('pointermove', {pointerId: 1, clientX: 44, timeStamp: 32}));
-    document.dispatchEvent(pointerEvent('pointerup', {pointerId: 1, clientX: 44, timeStamp: 48}));
-
-    expect(binding.instance).toBe(initialManager);
-    expect(onPanCancel).not.toHaveBeenCalled();
-    expect(onPanEnd).toHaveBeenCalledTimes(1);
-    expect(seen).toEqual([
-      {step: 0, deltaX: 20},
-      {step: 1, deltaX: 40},
-    ]);
-    expect(wrappedCalls).toHaveBeenCalledTimes(3);
-
-    // Toggling an enabled callback key recreates manager:
-    binding.update(makeList(4, true), {wrapCallback});
-    expect(binding.instance).not.toBe(initialManager);
-
-    // Structural slop change recreates manager:
-    const afterToggle = binding.instance;
-    binding.update(makeList(12, true), {wrapCallback});
-    expect(binding.instance).not.toBe(afterToggle);
-
-    // cancel() and destroy() are safe and idempotent:
-    binding.cancel();
-    binding.destroy();
-    binding.destroy();
-    binding.update(makeList(12, true));
-    expect(binding.instance).toBeNull();
-  });
-
-  it('GestureBinding diffs array options, relationship changes, and ignoreTarget transitions', () => {
-    const inp = document.createElement('input');
-    const blocked = document.createElement('span');
-    blocked.dataset.ignore = '1';
-    element.append(inp, blocked);
-
-    let tag = 'first';
-    const seen: string[] = [];
-    const onTap = () => seen.push(tag);
-
-    const binding = new GestureBinding(element, [tap({onTap})], {
-      supportedPointerTypes: ['touch', 'mouse'],
-      ignoreTarget: true,
-    });
-    const m1 = binding.instance;
-
-    // Equal array options keep the same manager:
-    binding.update([tap({onTap})], {
-      supportedPointerTypes: ['touch', 'mouse'],
-      ignoreTarget: true,
-    });
-    expect(binding.instance).toBe(m1);
-
-    // Changing array option values or length recreates manager:
-    binding.update([tap({onTap})], {
-      supportedPointerTypes: ['touch'],
-      ignoreTarget: true,
-    });
-    expect(binding.instance).not.toBe(m1);
-    const m2 = binding.instance;
-
-    // Structurally equal `update` hot-swaps closure immediately without remounting:
-    tag = 'second';
-    binding.update([tap({onTap: () => seen.push(tag)})], {
-      supportedPointerTypes: ['touch'],
-      ignoreTarget: true,
-    });
-    expect(binding.instance).toBe(m2);
-
-    const doTap = (target: HTMLElement, t: number) => {
-      target.dispatchEvent(pointerEvent('pointerdown', {clientX: 5, clientY: 5, timeStamp: t}));
-      target.dispatchEvent(pointerEvent('pointerup', {clientX: 5, clientY: 5, timeStamp: t + 20}));
-    };
-    doTap(inp, 0);
-    doTap(blocked, 50);
-    expect(seen).toEqual(['second']);
-
-    // `ignoreTarget: true -> fn` recreates manager and proxies predicate:
-    binding.update([tap({onTap})], {
-      supportedPointerTypes: ['touch'],
-      ignoreTarget: target => target instanceof Element && Boolean(target.closest('[data-ignore]')),
-    });
-    expect(binding.instance).not.toBe(m2);
-    const m3 = binding.instance;
-
-    // Replacing predicate fn1 -> fn2 hot-swaps without remounting:
-    binding.update([tap({onTap})], {
-      supportedPointerTypes: ['touch'],
-      ignoreTarget: target => target instanceof Element && Boolean(target.closest('[data-ignore]')),
-    });
-    expect(binding.instance).toBe(m3);
-
-    doTap(blocked, 100);
-    doTap(inp, 150);
-    expect(seen).toEqual(['second', 'second']);
-
-    // Changing relationship edge list recreates manager:
-    const a = tap({onTap});
-    const b = doubleTap({onTap});
-    binding.update([a, b], {autoWire: false});
-    const m4 = binding.instance;
-    const a2 = tap({onTap});
-    const b2 = doubleTap({onTap});
-    a2.requireFailureOf(b2);
-    binding.update([a2, b2], {autoWire: false});
-    expect(binding.instance).not.toBe(m4);
-
-    // Dynamic `wrapCallback` updates take effect immediately without remounting:
-    const wrappedHits = vi.fn();
-    const wrap = <F extends (...args: never[]) => unknown>(fn: F): F =>
-      ((...args: never[]) => {
-        wrappedHits();
-        return fn(...args);
-      }) as F;
-    const tapSpy = vi.fn();
-    binding.update([tap({onTap: tapSpy})], {});
-    const m6 = binding.instance;
-    binding.update([tap({onTap: tapSpy})], {wrapCallback: wrap});
-    expect(binding.instance).toBe(m6);
-    doTap(element, 300);
-    expect(tapSpy).toHaveBeenCalledTimes(1);
-    expect(wrappedHits).toHaveBeenCalledTimes(1);
-
-    // Duplicate peer descriptors deduplicate cleanly, and `NaN` configs stay stable:
+    // Duplicate peer descriptors deduplicate cleanly:
     const dupTarget = doubleTap({onTap: () => {}});
     const dupTap = tap({onTap: () => {}}).requireFailureOf(dupTarget, dupTarget);
     expect(dupTap.requiredFailures).toHaveLength(1);
-
-    binding.update([tap({onTap: () => {}, slop: Number.NaN})]);
-    const m7 = binding.instance;
-    binding.update([tap({onTap: () => {}, slop: Number.NaN})]);
-    expect(binding.instance).toBe(m7);
-
-    binding.destroy();
   });
 
-  it('supports swipe() descriptor, enabled toggle (including mid-drag disable), and propagate option in GestureBinding', () => {
+  it('supports swipe() descriptor in Gestures', () => {
     const onSwipe = vi.fn();
-    const binding = new GestureBinding(element, [
+    const gm = new Gestures(element, [
       swipe({direction: 'horizontal', minSwipeVelocity: 200, minSwipeDistance: 30, onSwipe}),
     ]);
     expect(element.style.touchAction).toBe('pan-y pinch-zoom');
@@ -434,68 +245,6 @@ describe('Gesture descriptors, resolveGestures, and GestureBinding', () => {
     expect(onSwipe).toHaveBeenCalledWith(
       expect.objectContaining({direction: 'right', pointerType: 'touch'})
     );
-
-    // Toggling `enabled: false` mid-drag cancels the active pan, restores styles, and keeps manager null:
-    const onPanStart = vi.fn();
-    const onPanCancel = vi.fn();
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: true});
-    expect(element.style.touchAction).toBe('none');
-    expect(element.style.userSelect).toBe('none');
-
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 2, clientX: 0, timeStamp: 100}));
-    document.dispatchEvent(
-      pointerEvent('pointermove', {pointerId: 2, clientX: 20, timeStamp: 116})
-    );
-    expect(onPanStart).toHaveBeenCalledTimes(1);
-
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: false});
-    expect(binding.instance).toBeNull();
-    expect(element.style.touchAction || '').toBe('');
-    expect(element.style.userSelect || '').toBe('');
-
-    // Repeated updates while disabled stay a clean no-op:
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: false});
-    expect(binding.instance).toBeNull();
-
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 3, clientX: 0, timeStamp: 200}));
-    document.dispatchEvent(
-      pointerEvent('pointermove', {pointerId: 3, clientX: 25, timeStamp: 216})
-    );
-    expect(onPanStart).toHaveBeenCalledTimes(1);
-
-    // Re-enabling mounts cleanly, toggling undefined <-> default option values keeps the same manager,
-    // and changing `propagate` remounts:
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: true});
-    const enabledMgr = binding.instance;
-    expect(enabledMgr).not.toBeNull();
-    expect(element.style.touchAction).toBe('none');
-
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {});
-    expect(binding.instance).toBe(enabledMgr);
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {
-      enabled: true,
-      autoWire: true,
-      propagate: false,
-      touchAction: 'compute',
-      ignoreTarget: true,
-    });
-    expect(binding.instance).toBe(enabledMgr);
-
-    binding.update([pan({slop: 4, onPanStart, onPanCancel})], {enabled: true, propagate: true});
-    expect(binding.instance).not.toBe(enabledMgr);
-
-    // `ignoreTarget` receives `(target, event)` so callers can gate on coordinates/modifiers:
-    const edgeTap = vi.fn();
-    binding.update([tap({onTap: edgeTap})], {
-      ignoreTarget: (_target, ev) => (ev as PointerEvent).clientX > 24,
-    });
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 4, clientX: 50, timeStamp: 300}));
-    document.dispatchEvent(pointerEvent('pointerup', {pointerId: 4, clientX: 50, timeStamp: 320}));
-    expect(edgeTap).not.toHaveBeenCalled();
-    element.dispatchEvent(pointerEvent('pointerdown', {pointerId: 5, clientX: 10, timeStamp: 400}));
-    document.dispatchEvent(pointerEvent('pointerup', {pointerId: 5, clientX: 10, timeStamp: 420}));
-    expect(edgeTap).toHaveBeenCalledTimes(1);
-
-    binding.destroy();
+    gm.destroy();
   });
 });

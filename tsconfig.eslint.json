@@ -6,7 +6,6 @@
     "rootDir": ".",
     "noEmit": true,
     "emitDeclarationOnly": false,
-    "experimentalDecorators": true,
     "jsx": "react-jsx",
     "paths": {
       "@gestures/core": ["./packages/core/src/index.ts"],

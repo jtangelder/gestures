@@ -43,8 +43,6 @@ export interface ResolveGesturesOptions {
    * Default: `true`.
    */
   autoWire?: boolean;
-  /** @internal */
-  resolveCallbacks?: (index: number, descriptor: GestureDescriptor) => GestureCallbackMap;
 }
 
 class GestureDescriptorImpl implements GestureDescriptor {
@@ -204,9 +202,8 @@ export function resolveGestures(
   const autoWire = options.autoWire !== false;
   const peersForCreate = autoWire ? descriptors : EMPTY_PEERS;
   const byDescriptor = new Map<GestureDescriptor, GestureRecognizer>();
-  const recognizers = descriptors.map((desc, i) => {
-    const cbs = options.resolveCallbacks ? options.resolveCallbacks(i, desc) : desc.callbacks;
-    const rec = desc.create(cbs, peersForCreate);
+  const recognizers = descriptors.map(desc => {
+    const rec = desc.create(desc.callbacks, peersForCreate);
     byDescriptor.set(desc, rec);
     return rec;
   });
@@ -250,68 +247,4 @@ export function resolveGestures(
   }
 
   return recognizers;
-}
-
-const FN_SENTINEL = Symbol('fn');
-
-/** @internal */
-export function snapshotStructure(value: unknown): unknown {
-  if (typeof value === 'function') {
-    return FN_SENTINEL;
-  }
-  if (Array.isArray(value)) {
-    return value.map(snapshotStructure);
-  }
-  if (value !== null && typeof value === 'object') {
-    const copy: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (v !== undefined) {
-        copy[k] = snapshotStructure(v);
-      }
-    }
-    return copy;
-  }
-  return value;
-}
-
-/** @internal */
-export function matchesSnapshot(snapshot: unknown, live: unknown): boolean {
-  if (snapshot === FN_SENTINEL) {
-    return typeof live === 'function';
-  }
-  if (typeof live === 'function') {
-    return false;
-  }
-  if (Object.is(snapshot, live)) {
-    return true;
-  }
-  if (Array.isArray(snapshot)) {
-    return (
-      Array.isArray(live) &&
-      snapshot.length === live.length &&
-      snapshot.every((item, i) => matchesSnapshot(item, live[i]))
-    );
-  }
-  if (
-    snapshot !== null &&
-    live !== null &&
-    typeof snapshot === 'object' &&
-    typeof live === 'object' &&
-    !Array.isArray(live)
-  ) {
-    const snapObj = snapshot as Record<string, unknown>;
-    const liveObj = live as Record<string, unknown>;
-    const snapKeys = Object.keys(snapObj);
-    let liveCount = 0;
-    for (const k of Object.keys(liveObj)) {
-      if (liveObj[k] !== undefined) {
-        liveCount++;
-      }
-    }
-    return (
-      snapKeys.length === liveCount &&
-      snapKeys.every(k => liveObj[k] !== undefined && matchesSnapshot(snapObj[k], liveObj[k]))
-    );
-  }
-  return false;
 }

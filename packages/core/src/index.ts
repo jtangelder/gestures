@@ -3,11 +3,6 @@
  */
 
 export {Gestures, type GesturesOptions, type PointerType} from './gestures.js';
-export {
-  GestureBinding,
-  type CallbackWrapper,
-  type GestureBindingOptions,
-} from './gesture_binding.js';
 export {gesture, type GestureDescriptor} from './descriptors.js';
 export {
   GestureRecognizer,

@@ -1,7 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {cdp} from 'vitest/browser';
 import {
-  GestureBinding,
   Gestures,
   pan,
   PanRecognizer,
@@ -397,31 +396,27 @@ describe('Gestures in a real browser (Chromium)', () => {
     }
   });
 
-  it('supports swipe() descriptor and enabled toggling via GestureBinding in a real browser', async () => {
+  it('supports swipe() descriptor and enabled: false in a real browser', async () => {
     const onSwipe = vi.fn();
-    const binding = new GestureBinding(
+    manager = new Gestures(
       surface,
       [swipe({direction: 'horizontal', minSwipeVelocity: 100, minSwipeDistance: 40, onSwipe})],
       {enabled: false}
     );
 
-    try {
-      expect(getComputedStyle(surface).touchAction).toBe('auto');
-      await touchFlick(1, {x: 40, y: 150}, {x: 240, y: 150});
-      expect(onSwipe).not.toHaveBeenCalled();
+    expect(getComputedStyle(surface).touchAction).toBe('auto');
+    await touchFlick(1, {x: 40, y: 150}, {x: 240, y: 150});
+    expect(onSwipe).not.toHaveBeenCalled();
+    manager.destroy();
 
-      binding.update(
-        [swipe({direction: 'horizontal', minSwipeVelocity: 100, minSwipeDistance: 40, onSwipe})],
-        {enabled: true}
-      );
-      expect(getComputedStyle(surface).touchAction).toBe('pan-y pinch-zoom');
+    manager = new Gestures(surface, [
+      swipe({direction: 'horizontal', minSwipeVelocity: 100, minSwipeDistance: 40, onSwipe}),
+    ]);
+    expect(getComputedStyle(surface).touchAction).toBe('pan-y pinch-zoom');
 
-      await touchFlick(2, {x: 40, y: 150}, {x: 240, y: 150});
-      expect(onSwipe).toHaveBeenCalledWith(
-        expect.objectContaining({direction: 'right', pointerType: 'touch'})
-      );
-    } finally {
-      binding.destroy();
-    }
+    await touchFlick(2, {x: 40, y: 150}, {x: 240, y: 150});
+    expect(onSwipe).toHaveBeenCalledWith(
+      expect.objectContaining({direction: 'right', pointerType: 'touch'})
+    );
   });
 });

@@ -11,7 +11,7 @@ A modern multi-touch and pointer gesture recognition library for the web, built 
 - **Tree-shakable gesture descriptors** (`tap`, `doubleTap`, `longPress`, `pan`, `swipe`, `scale`, `quickScale`, `rotate`, `gesture`) so you only ship the recognizers you import
 - **One-finger Quick Scale** (`quickScale`) for double-tap-and-drag zooming alongside two-finger pinch
 - **Web-native scrolling & coexistence** via computed CSS `touch-action`, lazy pointer capture, ghost-click suppression, and automatic nested surface coordination
-- **Tiny framework adapters** (`@gestures/react`, `@gestures/angular`) that hot-swap inline callbacks without cancelling active gestures
+- **Tiny React adapter** (`@gestures/react`) that hot-swaps inline callbacks without cancelling active gestures
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ const gestures = new Gestures(element, [hold, drag], {enabled: true});
 
 ### Framework Adapters
 
-All framework adapters wrap `GestureBinding` — inline callbacks never cancel active drags on re-render, and only imported gesture descriptors end up in your bundle.
+Framework adapters hot-swap inline callbacks without cancelling active drags on re-render, and only imported gesture descriptors end up in your bundle.
 
 ```tsx
 // React (@gestures/react)
@@ -83,7 +83,6 @@ All packages are versioned in lockstep:
 - [`@gestures/core`](packages/core/README.md) — Core pointer/gesture engine, descriptors, and built-in recognizers
 - [`@gestures/trackpad`](packages/trackpad/README.md) — Standalone laptop trackpad pinch-to-zoom (`ctrl` + `wheel` & Safari `GestureEvent`)
 - [`@gestures/react`](packages/react/README.md) — React `useGestures` hook
-- [`@gestures/angular`](packages/angular/README.md) — Standalone Angular `[gestures]` directive (zone-aware)
 
 ## Browser Support & Scope
 

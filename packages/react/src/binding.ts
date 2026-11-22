@@ -1,19 +1,71 @@
 import {
-  type GestureCallbackMap,
+  Gestures,
   type GestureDescriptor,
-  type GestureDescriptorKind,
-  matchesSnapshot,
-  resolveGestures,
-  snapshotStructure,
-} from './descriptors.js';
-import {Gestures, type GesturesOptions} from './gestures.js';
-import type {GestureTargetElement, TouchActionSetting} from './touch_action.js';
+  type GesturesOptions,
+  type GestureTargetElement,
+  type TouchActionSetting,
+} from '@gestures/core';
 
-export type CallbackWrapper = <F extends (...args: never[]) => unknown>(fn: F) => F;
+const FN_SENTINEL = Symbol('fn');
 
-export interface GestureBindingOptions extends GesturesOptions {
-  /** Optional wrapper applied when invoking callbacks (e.g. Angular `NgZone.run`). */
-  wrapCallback?: CallbackWrapper;
+function snapshotStructure(value: unknown): unknown {
+  if (typeof value === 'function') {
+    return FN_SENTINEL;
+  }
+  if (Array.isArray(value)) {
+    return value.map(snapshotStructure);
+  }
+  if (value !== null && typeof value === 'object') {
+    const copy: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v !== undefined) {
+        copy[k] = snapshotStructure(v);
+      }
+    }
+    return copy;
+  }
+  return value;
+}
+
+function matchesSnapshot(snapshot: unknown, live: unknown): boolean {
+  if (snapshot === FN_SENTINEL) {
+    return typeof live === 'function';
+  }
+  if (typeof live === 'function') {
+    return false;
+  }
+  if (Object.is(snapshot, live)) {
+    return true;
+  }
+  if (Array.isArray(snapshot)) {
+    return (
+      Array.isArray(live) &&
+      snapshot.length === live.length &&
+      snapshot.every((item, i) => matchesSnapshot(item, live[i]))
+    );
+  }
+  if (
+    snapshot !== null &&
+    live !== null &&
+    typeof snapshot === 'object' &&
+    typeof live === 'object' &&
+    !Array.isArray(live)
+  ) {
+    const snapObj = snapshot as Record<string, unknown>;
+    const liveObj = live as Record<string, unknown>;
+    const snapKeys = Object.keys(snapObj);
+    let liveCount = 0;
+    for (const k of Object.keys(liveObj)) {
+      if (liveObj[k] !== undefined) {
+        liveCount++;
+      }
+    }
+    return (
+      snapKeys.length === liveCount &&
+      snapKeys.every(k => liveObj[k] !== undefined && matchesSnapshot(snapObj[k], liveObj[k]))
+    );
+  }
+  return false;
 }
 
 interface BindingSnapshot {
@@ -24,7 +76,7 @@ interface BindingSnapshot {
   readonly supportedPointerTypes: unknown;
   readonly ignoreTarget: unknown;
   readonly gestures: ReadonlyArray<{
-    readonly kind: GestureDescriptorKind;
+    readonly kind: GestureDescriptor['kind'];
     readonly config: unknown;
     readonly callbackKeys: readonly string[];
     readonly simIndices: readonly number[];
@@ -98,25 +150,59 @@ function matchesBinding(
   return true;
 }
 
+function proxyDescriptors(
+  descriptors: readonly GestureDescriptor[],
+  getLatest: () => readonly GestureDescriptor[]
+): GestureDescriptor[] {
+  const map = new Map<GestureDescriptor, GestureDescriptor>();
+  const wrapped = descriptors.map((desc, index) => {
+    const callbacks: Record<string, ((...args: never[]) => unknown) | undefined> = {};
+    for (const key of Object.keys(desc.callbacks)) {
+      if (typeof desc.callbacks[key] === 'function') {
+        callbacks[key] = (...args: never[]) => {
+          const fn = getLatest()[index]?.callbacks[key];
+          return typeof fn === 'function' ? fn(...args) : undefined;
+        };
+      }
+    }
+    const proxy: GestureDescriptor = Object.assign(Object.create(desc), {
+      callbacks,
+      simultaneousPeers: [] as GestureDescriptor[],
+      requiredFailures: [] as GestureDescriptor[],
+    });
+    map.set(desc, proxy);
+    return proxy;
+  });
+
+  for (let i = 0; i < descriptors.length; i++) {
+    const src = descriptors[i];
+    const dst = wrapped[i];
+    (dst.simultaneousPeers as GestureDescriptor[]).push(
+      ...src.simultaneousPeers.map(p => map.get(p) ?? p)
+    );
+    (dst.requiredFailures as GestureDescriptor[]).push(
+      ...src.requiredFailures.map(p => map.get(p) ?? p)
+    );
+  }
+  return wrapped;
+}
+
 /**
- * Reactive, tree-shakable lifecycle controller that binds `GestureDescriptor`s to a DOM element.
- *
- * Inline callback changes hot-swap seamlessly without tearing down active gestures; the underlying
- * `Gestures` instance is only recreated when structural options, descriptor composition, or arena
- * relationships change.
+ * Reactive lifecycle controller for `@gestures/react` that hot-swaps inline callbacks
+ * without tearing down active gestures and remounts `Gestures` only on structural changes.
  */
 export class GestureBinding<T extends GestureTargetElement = GestureTargetElement> {
   readonly element: T;
   private current: Gestures<T> | null = null;
   private latestGestures: readonly GestureDescriptor[];
-  private latestOptions: GestureBindingOptions;
+  private latestOptions: GesturesOptions;
   private mountedSnapshot: BindingSnapshot | null = null;
   private destroyed = false;
 
   constructor(
     element: T,
     gestures: readonly GestureDescriptor[] = [],
-    options: GestureBindingOptions = {}
+    options: GesturesOptions = {}
   ) {
     this.element = element;
     this.latestGestures = gestures;
@@ -128,11 +214,7 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
     return this.current;
   }
 
-  /**
-   * Syncs new descriptors and options, hot-swapping callbacks in place when structurally equal
-   * and recreating the `Gestures` instance only when structural configuration changes.
-   */
-  update(gestures: readonly GestureDescriptor[], options: GestureBindingOptions = {}): void {
+  update(gestures: readonly GestureDescriptor[], options: GesturesOptions = {}): void {
     this.latestGestures = gestures;
     this.latestOptions = options;
     if (this.destroyed) {
@@ -170,11 +252,7 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
       return;
     }
 
-    const recognizers = resolveGestures(gestures, {
-      autoWire: options.autoWire,
-      resolveCallbacks: (index, desc) => this.proxyCallbacks(index, desc.callbacks),
-    });
-
+    const proxied = proxyDescriptors(gestures, () => this.latestGestures);
     const ignoreTarget =
       typeof options.ignoreTarget === 'function'
         ? (target: EventTarget, event: Event) => {
@@ -183,29 +261,12 @@ export class GestureBinding<T extends GestureTargetElement = GestureTargetElemen
           }
         : options.ignoreTarget;
 
-    this.current = new Gestures(this.element, recognizers, {
+    this.current = new Gestures(this.element, proxied, {
       supportedPointerTypes: options.supportedPointerTypes,
       touchAction: options.touchAction,
+      autoWire: options.autoWire,
       ignoreTarget,
       propagate: options.propagate,
     });
-  }
-
-  private proxyCallbacks(index: number, initial: GestureCallbackMap): GestureCallbackMap {
-    const proxied: Record<string, ((...args: never[]) => unknown) | undefined> = {};
-    for (const key of Object.keys(initial)) {
-      if (typeof initial[key] !== 'function') {
-        continue;
-      }
-      proxied[key] = (...args: never[]) => {
-        const fn = this.latestGestures[index]?.callbacks[key];
-        if (typeof fn !== 'function') {
-          return undefined;
-        }
-        const wrap = this.latestOptions.wrapCallback;
-        return wrap ? wrap(fn)(...args) : fn(...args);
-      };
-    }
-    return proxied;
   }
 }

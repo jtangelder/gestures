@@ -1,10 +1,6 @@
-import {
-  GestureBinding,
-  type GestureDescriptor,
-  type GesturesOptions,
-  type GestureTargetElement,
-} from '@gestures/core';
+import type {GestureDescriptor, GesturesOptions, GestureTargetElement} from '@gestures/core';
 import {useEffect, useRef, useState, type RefCallback} from 'react';
+import {GestureBinding} from './binding.js';
 
 export type {GestureDescriptor, GesturesOptions, GestureTargetElement};
 

@@ -303,8 +303,8 @@ export function LandingPage() {
         <section aria-label="Code examples">
           <h2>Quick Start</h2>
           <p>
-            One tree-shakable descriptor API across Vanilla JS, React, Angular, and standalone
-            laptop trackpad pinch.
+            One tree-shakable descriptor API across Vanilla JS, React, and standalone laptop
+            trackpad pinch.
           </p>
           <CodeExamples />
         </section>
@@ -328,14 +328,6 @@ export function LandingPage() {
                   </th>
                   <td>
                     Tree-shakable <code>useGestures</code> React hook
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row">
-                    <code>@gestures/angular</code>
-                  </th>
-                  <td>
-                    Standalone zone-aware <code>[gestures]</code> directive
                   </td>
                 </tr>
                 <tr>

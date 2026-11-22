@@ -47,7 +47,7 @@ describe('Landing Page', () => {
     // Accessible framework code tabs (selection follows focus)
     const vanillaTab = screen.getByRole('tab', {name: 'Vanilla JS'});
     const reactTab = screen.getByRole('tab', {name: 'React'});
-    const angularTab = screen.getByRole('tab', {name: 'Angular'});
+    const trackpadTab = screen.getByRole('tab', {name: 'Trackpad'});
 
     expect(vanillaTab.getAttribute('aria-selected')).toBe('true');
     expect(document.querySelectorAll('.sh-keyword').length).toBeGreaterThan(0);
@@ -58,37 +58,47 @@ describe('Landing Page', () => {
     expect(reactTab.getAttribute('aria-selected')).toBe('true');
     expect(vanillaTab.getAttribute('aria-selected')).toBe('false');
 
-    // Keyboard ArrowRight moves focus and selection to Angular tab
+    // Keyboard ArrowRight moves focus and selection to Trackpad tab, ArrowLeft back to React
     fireEvent.keyDown(reactTab, {key: 'ArrowRight'});
-    expect(angularTab.getAttribute('aria-selected')).toBe('true');
+    expect(trackpadTab.getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(trackpadTab, {key: 'ArrowLeft'});
+    expect(reactTab.getAttribute('aria-selected')).toBe('true');
 
     // Touch swipe switches tabs without setting blocking touch-action on .tab-panels
     const tabPanels = document.querySelector<HTMLDivElement>('.tab-panels')!;
-    const trackpadTab = screen.getByRole('tab', {name: 'Trackpad'});
     expect(tabPanels.style.touchAction).toBe('');
 
-    const angularPre = tabPanels.querySelectorAll<HTMLPreElement>('.code-block')[2];
-    Object.defineProperty(angularPre, 'scrollWidth', {value: 600, configurable: true});
-    Object.defineProperty(angularPre, 'clientWidth', {value: 300, configurable: true});
+    const reactPre = tabPanels.querySelectorAll<HTMLPreElement>('.code-block')[1];
+    Object.defineProperty(reactPre, 'scrollWidth', {value: 600, configurable: true});
+    Object.defineProperty(reactPre, 'clientWidth', {value: 300, configurable: true});
 
-    // Swiping inside an overflowing <pre> is ignored so horizontal code scroll stays native
-    fireEvent(angularPre, pe('pointerdown', 9, 260, 100, true, 900));
+    // Overflowing <pre> not yet scrolled to the right: swipe left stays on React so code scrolls
+    reactPre.scrollLeft = 0;
+    fireEvent(reactPre, pe('pointerdown', 9, 260, 100, true, 900));
     fireEvent(document, pe('pointermove', 9, 140, 100, true, 920));
     fireEvent(document, pe('pointerup', 9, 80, 100, true, 940));
-    expect(angularTab.getAttribute('aria-selected')).toBe('true');
+    expect(reactTab.getAttribute('aria-selected')).toBe('true');
 
-    // Swiping on a non-overflowing target switches left -> Trackpad, then right -> Angular
-    fireEvent(tabPanels, pe('pointerdown', 10, 260, 100, true, 1000));
-    fireEvent(document, pe('pointermove', 10, 220, 100, true, 1020));
-    fireEvent(document, pe('pointermove', 10, 140, 100, true, 1040));
-    fireEvent(document, pe('pointerup', 10, 80, 100, true, 1060));
+    // Mid-scroll (<pre> can scroll both ways): ignoreTarget blocks swipes in both directions
+    reactPre.scrollLeft = 150;
+    fireEvent(reactPre, pe('pointerdown', 10, 80, 100, true, 960));
+    fireEvent(document, pe('pointermove', 10, 200, 100, true, 980));
+    fireEvent(document, pe('pointerup', 10, 260, 100, true, 1000));
+    expect(reactTab.getAttribute('aria-selected')).toBe('true');
+
+    // Once scrolled all the way to the right edge, swipe left advances to Trackpad
+    reactPre.scrollLeft = 300;
+    fireEvent(reactPre, pe('pointerdown', 11, 260, 100, true, 1050));
+    fireEvent(document, pe('pointermove', 11, 140, 100, true, 1070));
+    fireEvent(document, pe('pointerup', 11, 80, 100, true, 1090));
     expect(trackpadTab.getAttribute('aria-selected')).toBe('true');
 
-    fireEvent(tabPanels, pe('pointerdown', 11, 80, 100, true, 1200));
-    fireEvent(document, pe('pointermove', 11, 140, 100, true, 1220));
-    fireEvent(document, pe('pointermove', 11, 220, 100, true, 1240));
-    fireEvent(document, pe('pointerup', 11, 260, 100, true, 1260));
-    expect(angularTab.getAttribute('aria-selected')).toBe('true');
+    // Swiping right on a non-overflowing target moves back to React
+    fireEvent(tabPanels, pe('pointerdown', 12, 80, 100, true, 1200));
+    fireEvent(document, pe('pointermove', 12, 140, 100, true, 1220));
+    fireEvent(document, pe('pointermove', 12, 220, 100, true, 1240));
+    fireEvent(document, pe('pointerup', 12, 260, 100, true, 1260));
+    expect(reactTab.getAttribute('aria-selected')).toBe('true');
   });
 });
 
