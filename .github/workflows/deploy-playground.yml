@@ -1,4 +1,4 @@
-name: Deploy Playground
+name: Deploy Site
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-playground
+  group: deploy-site
   cancel-in-progress: true
 
 jobs:
@@ -25,11 +25,11 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: npm run build:playground
+      - run: npm run build:site
 
-      - name: Deploy playground to gh-pages
+      - name: Deploy site to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./playground/dist
+          publish_dir: ./site/dist

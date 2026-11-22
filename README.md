@@ -2,7 +2,7 @@
 
 > **Note:** Active early development (`0.1.0-alpha.0`). APIs are evolving.
 >
-> **Try the live playground:** https://jtangelder.github.io/gestures/
+> **Website & live playground:** https://jtangelder.github.io/gestures/ ([playground](https://jtangelder.github.io/gestures/playground.html))
 
 A modern multi-touch and pointer gesture recognition library for the web, built around:
 
@@ -141,7 +141,7 @@ Optional APIs such as [`PointerEvent.getCoalescedEvents()`](https://caniuse.com/
 
 ```bash
 npm install
-npm run dev        # Open the interactive gesture playground
+npm run dev        # Open the landing page & interactive gesture playground
 npm run test:unit  # Run unit tests across all packages
 npm test           # Full suite (including Playwright browser tests and lint)
 ```

@@ -9,12 +9,12 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "vite --config playground/vite.config.ts",
+    "dev": "vite --config site/vite.config.ts",
     "build": "npm -w @gestures/core run build && npm --workspaces --if-present run build",
-    "build:playground": "vite build --config playground/vite.config.ts",
-    "test": "npm --workspaces --if-present run test && npm run test:playground",
-    "test:unit": "npm --workspaces --if-present run test:unit && npm run test:playground",
-    "test:playground": "vitest run --config playground/vite.config.ts",
+    "build:site": "vite build --config site/vite.config.ts",
+    "test": "npm --workspaces --if-present run test && npm run test:site",
+    "test:unit": "npm --workspaces --if-present run test:unit && npm run test:site",
+    "test:site": "vitest run --config site/vite.config.ts",
     "test:browser": "npm -w @gestures/core run test:browser",
     "test:coverage": "npm -w @gestures/core run test:coverage",
     "format": "prettier --write .",
@@ -38,6 +38,7 @@
     "jsdom": "^29.1.1",
     "playwright": "^1.65.0",
     "prettier": "^3.9.10",
+    "sugar-high": "^2.7.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"

@@ -38,7 +38,7 @@ import {PointerOverlay} from './PointerOverlay';
 
 const MAX_LOGS = 200;
 
-export function App() {
+export function PlaygroundApp() {
   const [config, setConfig] = useState<Config>(BASE_CONFIG);
   const [persist, setPersist] = useState(false);
   const [stageEl, setStageEl] = useState<HTMLDivElement | null>(null);
@@ -55,7 +55,10 @@ export function App() {
   const baseRef = useRef({tx: 0, ty: 0, scale: 1, rot: 0});
   const liveRef = useRef({tx: 0, ty: 0, scale: 1, rot: 0});
   const originRef = useRef({tx: 0, ty: 0, scale: 1, rot: 0});
+  const persistRef = useRef(persist);
+  persistRef.current = persist;
   const pointerMapRef = useRef(new Map<number, VisualPointer>());
+  const swipeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const trackpadRef = useRef<TrackpadScale | null>(null);
   const swipedRef = useRef(false);
   const statsRef = useRef({count: 0, seq: 0, originTime: performance.now(), peakSpeed: 0});
@@ -69,14 +72,25 @@ export function App() {
     setTransform({...merged, animate});
   };
 
-  const resetTransform = useCallback((animate = true) => {
-    baseRef.current = {tx: 0, ty: 0, scale: 1, rot: 0};
-    liveRef.current = {tx: 0, ty: 0, scale: 1, rot: 0};
-    setTransform({...INITIAL_TRANSFORM, animate});
+  const clearSwipeTimer = useCallback(() => {
+    if (swipeTimerRef.current !== null) {
+      clearTimeout(swipeTimerRef.current);
+      swipeTimerRef.current = null;
+    }
   }, []);
 
+  const resetTransform = useCallback(
+    (animate = true) => {
+      clearSwipeTimer();
+      baseRef.current = {tx: 0, ty: 0, scale: 1, rot: 0};
+      liveRef.current = {tx: 0, ty: 0, scale: 1, rot: 0};
+      setTransform({...INITIAL_TRANSFORM, animate});
+    },
+    [clearSwipeTimer]
+  );
+
   const settleTransform = (swipeVx = 0, swipeVy = 0) => {
-    if (persist) {
+    if (persistRef.current) {
       const rect = stageEl?.getBoundingClientRect();
       const maxX = Math.max(80, (rect?.width ?? 300) * 0.42);
       const maxY = Math.max(80, (rect?.height ?? 300) * 0.42);
@@ -91,6 +105,7 @@ export function App() {
       return;
     }
     if (swipeVx !== 0 || swipeVy !== 0) {
+      clearSwipeTimer();
       applyTransform(
         {
           tx: liveRef.current.tx + Math.max(-48, Math.min(48, swipeVx * 0.035)),
@@ -98,8 +113,9 @@ export function App() {
         },
         true
       );
-      setTimeout(() => {
-        if (pointerMapRef.current.size === 0) resetTransform(true);
+      swipeTimerRef.current = setTimeout(() => {
+        swipeTimerRef.current = null;
+        if (pointerMapRef.current.size === 0 && !persistRef.current) resetTransform(true);
       }, 140);
       return;
     }
@@ -464,6 +480,7 @@ export function App() {
       sync();
     };
     const onDown = (e: PointerEvent) => {
+      clearSwipeTimer();
       trackpadRef.current?.cancel();
       if (pointerMapRef.current.size === 0) statsRef.current.originTime = performance.now();
       setPtr(e);
@@ -474,6 +491,24 @@ export function App() {
       if (!pointerMapRef.current.delete(e.pointerId)) return;
       sync();
       appendLog('dom', type, `id=${e.pointerId} remaining=${pointerMapRef.current.size}`);
+      if (pointerMapRef.current.size === 0 && !persistRef.current) {
+        // Defer one microtask so `GestureManager`'s synchronous `onSwipe` can arm `swipeTimerRef` first.
+        queueMicrotask(() => {
+          if (
+            pointerMapRef.current.size === 0 &&
+            !persistRef.current &&
+            swipeTimerRef.current === null
+          ) {
+            resetTransform(true);
+          }
+        });
+      }
+    };
+    const onBlur = () => {
+      if (pointerMapRef.current.size === 0) return;
+      pointerMapRef.current.clear();
+      sync();
+      if (!persistRef.current) resetTransform(true);
     };
     const onUp = onEnd('pointerup');
     const onCancel = onEnd('pointercancel');
@@ -482,13 +517,16 @@ export function App() {
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
     document.addEventListener('pointercancel', onCancel);
+    window.addEventListener('blur', onBlur);
     return () => {
+      clearSwipeTimer();
       stageEl.removeEventListener('pointerdown', onDown);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       document.removeEventListener('pointercancel', onCancel);
+      window.removeEventListener('blur', onBlur);
     };
-  }, [stageEl, appendLog]);
+  }, [stageEl, appendLog, clearSwipeTimer, resetTransform]);
 
   useEffect(() => {
     const onResize = () => setEnvRows(readEnvRows());
@@ -500,7 +538,12 @@ export function App() {
     <>
       <header className="container">
         <nav aria-label="Playground toolbar">
-          <h1>Gestures Playground</h1>
+          <h1>
+            <a href="./" className="brand-link">
+              Gestures
+            </a>{' '}
+            Playground
+          </h1>
           <div className="inline-row">
             <select
               id="presetSelect"
@@ -530,6 +573,9 @@ export function App() {
             >
               Reset
             </button>
+            <a href="./" className="secondary">
+              Overview
+            </a>
             <a
               href="https://github.com/jtangelder/gestures"
               target="_blank"
